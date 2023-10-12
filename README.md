@@ -1,65 +1,94 @@
 # CSI4900-Stock-Prediction-Project
 
-# Financial Indicators API with Flask
-
 ## Overview
 
-This project is a RESTful API developed with Flask to calculate various financial indicators for the top 10 S&P 500 companies. It fetches historical stock data and computes a set of financial indicators such as Simple Moving Average (SMA), Exponential Moving Average (EMA), Bollinger Bands, Relative Strength Index (RSI), and Moving Average Convergence Divergence (MACD).
+This web application offers two primary functionalities:
 
-## Features
+1. Fetches various financial indicators for a list of stock tickers.
+2. Retrieves key metrics like market cap, sector, dividend yield, etc., for the same stock tickers.
 
-- RESTful API endpoint to fetch computed financial indicators.
-- Data fetching from Yahoo Finance using the `yfinance` package.
-- Data manipulation and statistical calculations using `pandas` and `numpy`.
+The data is fetched and calculated by REST API endpoints and is accessible via HTTP GET requests.
 
-## Requirements
+## Table of Contents
 
-- Python 3.x
-- Flask
-- yfinance
-- pandas
-- numpy
+- [Getting Started](#getting-started)
+- [Dependencies](#dependencies)
+- [How to Run](#how-to-run)
+- [API Endpoints](#api-endpoints)
+- [Contributors](#contributors)
 
-## Installation
+## Getting Started
 
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/your_username/CSI4900-Stock-Prediction-Project.git
-    ```
+Clone the repository to your local machine.
 
-2. Navigate to the project directory:
-    ```bash
-    cd CSI4900-Stock-Prediction-Project
-    ```
+```
+git clone https://github.com/your_repository/CSI4900-Stock-Prediction-Project.git
+```
 
-3. Install the required packages:
-    ```bash
-    pip install -r requirements.txt
-    ```
+Navigate to the project directory.
 
-## Usage
+```
+cd CSI4900-Stock-Prediction-Project
+```
 
-1. Run the Flask application:
-    ```bash
-    python main.py
-    ```
+## Dependencies
 
-2. To fetch financial indicators, use your web browser or a tool like curl to visit:
-    ```http
-    http://localhost:5000/get_indicators
-    ```
+To install the required packages, run:
 
-## API Documentation
+```
+pip install -r requirements.txt
+```
 
-### GET `/get_indicators`
+The key libraries used are:
 
-Returns a JSON object containing various calculated financial indicators for the top 10 S&P 500 companies.
+- Flask: for the web application.
+- Pandas: for data manipulation.
+- yfinance: for fetching stock data.
+- concurrent.futures: for parallel execution.
 
-#### Response
+## How to Run
 
-- JSON object with the calculated indicators.
+Start the Flask development server by running:
+
+```
+python main.py
+```
+
+Now the app should be running at `http://127.0.0.1:5000/`.
+
+## API Endpoints
+
+### 1. Get Financial Indicators
+
+Fetch various financial indicators like SMA, EMA, RSI, etc., for different stocks.
+
+- **URL:** `/get_indicators`
+- **Method:** `GET`
+
+Example:
+
+```
+curl http://127.0.0.1:5000/get_indicators
+```
+
+### 2. Get Stock Data
+
+Fetch key metrics like market cap, sector, dividend yield, etc., for different stocks.
+
+- **URL:** `/get_stock_data`
+- **Method:** `GET`
+
+Example:
+
+```
+curl http://127.0.0.1:5000/get_stock_data
+```
 
 ## Code Structure
 
-- `main.py`: Contains the Flask API endpoints.
-- `financial_calculations.py`: Contains the function for calculating the financial indicators.
+- `financial_calculations.py`: Contains all the logic for fetching and calculating stock data and indicators.
+- `main.py`: Defines the Flask app and API endpoints.
+
+## Contributors
+
+- CSI4900 Students
