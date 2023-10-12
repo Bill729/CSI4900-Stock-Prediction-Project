@@ -1,9 +1,5 @@
 # CSI4900-Stock-Prediction-Project
 
-Certainly! Here's a README.md file content that provides an overview and instructions for your Flask application and its associated financial calculations.
-
----
-
 # Financial Indicators API with Flask
 
 ## Overview
