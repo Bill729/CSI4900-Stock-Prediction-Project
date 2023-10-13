@@ -2,6 +2,25 @@
 
 ## Dependencies
 
+Before doing any development, using a virtual environment is highly recommended. 
+Create a virtual environment:
+
+```
+python3 -m venv env
+```
+
+Activate your virtual environment:
+
+```
+.\env\Scripts\activate
+```
+
+Deactivate the virtual environment:
+
+```
+deactivate
+```
+
 To install the required packages, run:
 
 ```
