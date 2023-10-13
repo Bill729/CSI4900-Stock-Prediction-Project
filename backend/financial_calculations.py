@@ -1,8 +1,6 @@
-# Import necessary libraries
-import yfinance as yf   # yfinance is used for fetching stock market data from Yahoo Finance.
-import pandas as pd     # pandas is used for data manipulation and handling.
-import numpy as np      # numpy is used for numerical operations.
-from concurrent.futures import ThreadPoolExecutor  # For executing calls asynchronously.
+import yfinance as yf
+import pandas as pd
+from concurrent.futures import ThreadPoolExecutor
 
 # List of stock ticker symbols that we're interested in.
 tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "BRK-B", "V", "JNJ", "WMT", "PG"]
@@ -113,9 +111,8 @@ def calculate_indicators():
     # Return the DataFrame containing all the calculated indicators.
     return indicators_df
 
+# Used for standalone testing, 
 if __name__ == "__main__":
-    # This block allows for this script to be run standalone for testing, 
-    # but will not run when imported by Flask.
     stock_data = fetch_stock_data()
     stock_indicators = calculate_indicators()
     print(stock_indicators)
