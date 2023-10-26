@@ -1,15 +1,17 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import Ping from '../components/Ping.vue'
+import VueRouter from "vue-router";
+import routes from "./routes";
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/ping',
-      name: 'ping',
-      component: Ping
-    },
-  ]
-})
+// configure router
+const router = new VueRouter({
+  routes, // short for routes: routes
+  linkExactActiveClass: "active",
+  scrollBehavior: (to) => {
+    if (to.hash) {
+      return {selector: to.hash}
+    } else {
+      return { x: 0, y: 0 }
+    }
+  }
+});
 
-export default router
+export default router;
