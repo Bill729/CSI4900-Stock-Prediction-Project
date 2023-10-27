@@ -70,10 +70,11 @@ import LineChart from "./components/LineChart";
   },
     async created(){
       try{
-        const { data } = await axios.get('http://127.0.0.1:5000/get_indicators');
-        const { data1 } = await axios.get('http://127.0.0.1:5000/get_stock_data');
+        const { data } = await axios.get('http://127.0.0.1:5000/tickers');
         console.log('data', data);
+        const { data1 } = await axios.get('http://127.0.0.1:5000/stock/AAPL/info');
         console.log('data1', data1);
+        
         for(const stockSymbol1 in this.stockData){
         const stock = this.stockData[stockSymbol1];
 

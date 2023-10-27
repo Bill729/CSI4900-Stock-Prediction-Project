@@ -1,31 +1,28 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-from financial_calculations import calculate_indicators, fetch_stock_data
+from api_impl import stock_info_impl, tickers_impl
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-# http://<server_address>:<port>/get_indicators, 
-@app.route('/get_indicators', methods=['GET'])
-def get_indicators():
-    # This function returns a DataFrame containing various financial indicators.
-    indicators_df = calculate_indicators()
-    
-    indicators_json = indicators_df.to_json(orient='split')
-    response = jsonify(indicators_json)
-    
+@app.route('/tickers', methods=['GET'])
+def get_stock_tickers():
+    '''
+    Returns a list of all tickers we are tracking
+    '''
+    stock_tickers = tickers_impl.get_stock_tickers()
+    response = jsonify(stock_tickers)
     return response
 
-# http://<server_address>:<port>/get_stock_data, 
-@app.route('/get_stock_data', methods=['GET'])
-def get_stock_data():
-    # This function returns a dictionary containing various data points for different stocks.
-    stock_data = fetch_stock_data()
-    
-    response = jsonify(stock_data)
-    
+@app.route('/stock/<ticker>/info', methods=['GET'])
+def get_stock_info(ticker):
+    """ 
+    Returns all relevant information for a specific stock
+    """
+    stock_info = stock_info_impl.fetch_single_stock_data(ticker)
+    response = jsonify(stock_info)
     return response
 
 if __name__ == '__main__':

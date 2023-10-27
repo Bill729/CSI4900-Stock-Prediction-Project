@@ -2,19 +2,15 @@ import yfinance as yf
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 
-# List of stock ticker symbols that we're interested in.
+# TODO: Might be deleted in the future
 tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "BRK-B", "V", "JNJ", "WMT", "PG"]
 
-# Define a function to fetch data for a single stock ticker.
+# Function to fetch data for a single stock ticker.
 def fetch_single_stock_data(ticker):
-
-    # Create an object for the stock using yfinance's Ticker class.
     stock = yf.Ticker(ticker)
     
-    # Fetch all available stock information.
     stock_info = stock.info
     
-    # Define the specific metrics we want to extract.
     metrics = [
         "marketCap", "sector", "industry",
         "dividendYield", "trailingPE", "earningsQuarterlyGrowth",
@@ -24,27 +20,24 @@ def fetch_single_stock_data(ticker):
     
     # Create a dictionary to hold our chosen metrics for this stock.
     # If a metric is not available, we use "N/A" as a placeholder.
-    return {ticker: {metric: stock_info.get(metric, "N/A") for metric in metrics}}
+    return {metric: stock_info.get(metric, "N/A") for metric in metrics}
 
 # Define a function to fetch data for all listed stock tickers.
+# TODO: Might be deleted in the future
 def fetch_stock_data():
 
-    # Use ThreadPoolExecutor to run multiple threads and speed up data fetching.
     with ThreadPoolExecutor() as executor:
-        # Fetch the stock data asynchronously and convert the results to a list.
         results = list(executor.map(fetch_single_stock_data, tickers))
     
-    # Initialize an empty dictionary to hold all stock data.
     stock_data_dict = {}
     
-    # Populate the stock_data_dict with data fetched by all threads.
     for result in results:
         stock_data_dict.update(result)
 
-    # Return the dictionary containing all stock data.
     return stock_data_dict
 
 # Define a function to calculate stock indicators for a single stock ticker.
+# TODO: Add this to the output of get_stock_info
 def calculate_single_indicator(ticker, close_prices):
 
     # Calculate Simple Moving Average (SMA) over a 20-day window.
@@ -79,7 +72,6 @@ def calculate_single_indicator(ticker, close_prices):
     macd = short_ema - long_ema
     signal_line = macd.ewm(span=9).mean()
 
-    # Compile all these indicators into a single DataFrame.
     return pd.DataFrame({
         f'{ticker}_SMA': sma,
         f'{ticker}_EMA': ema,
@@ -91,24 +83,20 @@ def calculate_single_indicator(ticker, close_prices):
     })
 
 # Define a function to calculate stock indicators for all listed stock tickers.
+# TODO: Might be deleted in the future
 def calculate_indicators():
 
     # Download historical stock data for all tickers for the past 1 year.
     data = yf.download(tickers, period="1y")
     
-    # Extract only the 'Close' prices from the downloaded data.
     close_prices = data['Close']
     
-    # Use ThreadPoolExecutor to speed up the indicator calculations.
     with ThreadPoolExecutor() as executor:
-        # Calculate the indicators for all stock tickers.
         indicators_list = list(executor.map(lambda ticker: calculate_single_indicator(ticker, close_prices), tickers))
 
-    # Combine the calculated indicators for all tickers into a single DataFrame.
     indicators_df = pd.concat(indicators_list, axis=1)
     indicators_df = indicators_df.iloc[19:]
 
-    # Return the DataFrame containing all the calculated indicators.
     return indicators_df
 
 # Used for standalone testing, 
