@@ -20,7 +20,7 @@ export default {
     },
     methods: {
         getMessage() {
-            const path = 'http://127.0.0.1:5000/get_indicators';
+            const path = 'http://127.0.0.1:5000/get_stock_data';
             axios.get(path)
                 .then((res) => {
                 this.msg = res.data;
