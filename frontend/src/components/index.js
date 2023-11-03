@@ -9,7 +9,6 @@ import BaseAlert from "./BaseAlert";
 import BaseNav from "./BaseNav";
 import Modal from "./Modal";
 import CloseButton from "./CloseButton";
-
 import Card from "./Cards/Card.vue";
 import StatsCard from "./Cards/StatsCard.vue";
 

@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import DashboardLayout from '../layout/starter/SampleLayout.vue';
 import Starter from '../layout/starter/SamplePage.vue';
+import "bootstrap/dist/css/bootstrap.css";
 
 Vue.use(Router);
 

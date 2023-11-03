@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <div class="row">
       <div class="col-12">
         <card type="chart">
@@ -124,6 +123,28 @@
         </card>
       </div>
     </div>
+    <div class="row">
+      <div class="col-12">
+        <card type="chart">
+          <template slot="header">
+            <!-- You can customize the chart header as needed -->
+            <h5 class="card-category">New Chart Category</h5>
+            <h2 class="card-title">New Chart Title</h2>
+          </template>
+          <div class="chart-area">
+            <line-chart style="height: 100%"
+                        ref="bigChart"
+                        chart-id="big-line-chart"
+                        :chart-data="bigLineChart.chartData"
+                        :gradient-colors="bigLineChart.gradientColors"
+                        :gradient-stops="bigLineChart.gradientStops"
+                        :extra-options="bigLineChart.extraOptions">
+                        label="stocks"
+            </line-chart>
+          </div>
+        </card>
+      </div>
+    </div>
   </div>
 </template>
 <script>
@@ -133,16 +154,68 @@
   import TaskList from './Dashboard/TaskList';
   import UserTable from './Dashboard/UserTable';
   import config from '@/config';
+  // import LineChart1 from '@/components/LineChart1';
+  import axios from 'axios';
+  // import LineChart1 from '../components/LineChart1.vue';
+
 
   export default {
     components: {
-      LineChart,
-      BarChart,
-      TaskList,
-      UserTable
-    },
+    LineChart,
+    BarChart,
+    TaskList,
+    UserTable,
+    // LineChart1,
+    // LineChart1
+},
     data() {
       return {
+        arrStock: [],
+        arrCurrentPrice: [],
+        stockChartColors: {
+        borderColor: "#077187",
+        pointBorderColor: "#0E1428",
+        pointBackgroundColor: "#AFD6AC",
+        backgroundColor: "#74A57F",
+        msg: '',
+        msg1: ''
+      },
+        stockData: {
+        "AAPL": {
+          "currentPrice": 166.89
+        },
+        "AMZN": {
+          "currentPrice": 119.57
+        },
+        "BRK-B": {
+          "currentPrice": 336.16
+        },
+        "GOOGL": {
+          "currentPrice": 122.28
+        },
+        "JNJ": {
+          "currentPrice": 149.0
+        },
+        "META": {
+          "currentPrice": 288.35
+        },
+        "MSFT": {
+          "currentPrice": 327.89
+        },
+        "PG": {
+          "currentPrice": 149.8
+        },
+        "V": {
+          "currentPrice": 231.28
+        },
+        "WMT": {
+          "currentPrice": 161.77
+        }
+      },
+      chartOptions: {
+        responsive: true,
+        maintainAspectRatio: false
+      },
         bigLineChart: {
           allData: [
             [100, 70, 90, 70, 85, 60, 75, 60, 90, 80, 110, 100],
@@ -224,6 +297,51 @@
           gradientColors: config.colors.primaryGradient,
           gradientStops: [1, 0.4, 0],
         }
+      }
+    },
+    async created(){
+      try{
+        const  data  = 'http://127.0.0.1:5000/get_stock_data';
+        const  data1  = 'http://127.0.0.1:5000/get_indicators';
+        axios.get(data)
+                .then((res) => {
+                this.msg = res.data;
+                console.log('data', this.msg);
+                })
+                .catch((error) => {
+                console.error(error);
+                });
+        axios.get(data1)
+                .then((res) => {
+                this.msg1 = res.data;
+                console.log('data1', this.msg1);
+                })
+                .catch((error) => {
+                console.error(error);
+                });
+        // const {path} = 'http://127.0.0.1:5000/get_stock_data';
+        //     axios.get(path)
+        //         .then((res) => {
+        //         this.msg = res.data;
+        //         })
+        //         .catch((error) => {
+        //         console.error(error);
+        //         });
+        
+        
+        for(const stockSymbol1 in this.stockData){
+        const stock = this.stockData[stockSymbol1];
+        const currentPrice = stock.currentPrice;
+        const stockSymbol = stockSymbol1;
+        
+
+        console.log(stockSymbol, currentPrice);
+        
+      }
+       
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
     },
     computed: {
