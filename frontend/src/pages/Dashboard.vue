@@ -300,35 +300,7 @@
       }
     },
     async created(){
-      try{
-        const  data  = 'http://127.0.0.1:5000/get_stock_data';
-        const  data1  = 'http://127.0.0.1:5000/get_indicators';
-        axios.get(data)
-                .then((res) => {
-                this.msg = res.data;
-                console.log('data', this.msg);
-                })
-                .catch((error) => {
-                console.error(error);
-                });
-        axios.get(data1)
-                .then((res) => {
-                this.msg1 = res.data;
-                console.log('data1', this.msg1);
-                })
-                .catch((error) => {
-                console.error(error);
-                });
-        // const {path} = 'http://127.0.0.1:5000/get_stock_data';
-        //     axios.get(path)
-        //         .then((res) => {
-        //         this.msg = res.data;
-        //         })
-        //         .catch((error) => {
-        //         console.error(error);
-        //         });
-        
-        
+      try{        
         for(const stockSymbol1 in this.stockData){
         const stock = this.stockData[stockSymbol1];
         const currentPrice = stock.currentPrice;
