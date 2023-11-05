@@ -43,6 +43,9 @@
                    :centered="false"
                    :show-close="true">
               <input slot="header" v-model="searchQuery" type="text" class="form-control" id="inlineFormInputGroup" placeholder="SEARCH">
+              <ul id="ul-ticker">
+                <li class="li-ticker" v-for="ticker in tickers" :key="ticker"><button>{{ ticker }}</button></li>
+              </ul>
             </modal>
             <base-dropdown tag="li"
                            :menu-on-right="!$rtl.isRTL"
@@ -104,6 +107,7 @@
 <script>
   import { CollapseTransition } from 'vue2-transitions';
   import Modal from '@/components/Modal';
+  import axios from 'axios';
 
   export default {
     components: {
@@ -124,7 +128,10 @@
         activeNotifications: false,
         showMenu: false,
         searchModalVisible: false,
-        searchQuery: ''
+        searchQuery: '',
+        hasTickers: false,
+        items: [1,2,3],
+        tickers: []
       };
     },
     methods: {
@@ -133,6 +140,19 @@
       },
       toggleNotificationDropDown() {
         this.activeNotifications = !this.activeNotifications;
+      },
+      getTickers(){
+        const uri = 'http://127.0.0.1:5000/tickers';
+        axios.get(uri)
+        .then((res) => {
+          console.log(res);
+          this.hasTickers = true;
+          this.tickers = res.data;
+          return res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
       },
       closeDropDown() {
         this.activeNotifications = false;
@@ -146,6 +166,9 @@
       toggleMenu() {
         this.showMenu = !this.showMenu;
       }
+    },
+    mounted(){
+      this.getTickers();
     }
   };
 </script>

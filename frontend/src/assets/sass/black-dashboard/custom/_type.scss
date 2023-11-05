@@ -163,6 +163,23 @@ ul li, ol li{
   color: $white;
 }
 
+#ul-ticker{
+    width: 100%;
+}
+
+.li-ticker{
+    color: $black;
+    list-style: none;
+    width: 100%;
+    button{
+        background: red;
+        border: 0;
+        width: 100%;
+        height: 100%;
+        margin: 3px 0;
+    }
+}
+
 pre{
   color: $opacity-8;
 }
