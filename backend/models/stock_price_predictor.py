@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import LSTM, Dense, Dropout, Bidirectional, BatchNormalization
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.optimizers import Adam
@@ -75,12 +75,17 @@ def create_model(input_shape):
 def custom_predict(model, input_data):
     return model(input_data, training=False)
 
+def create_sequences(data, n_steps=20):
+    X, Y = [], []
+    for i in range(len(data) - n_steps):
+        # Create sequences of 'n_steps' length
+        X.append(data[i:i + n_steps, :-1])
+        Y.append(data[i + n_steps, 0])
+    return np.array(X), np.array(Y)
 
 
-# Function to train LSTM models for different stock tickers and make future predictions
-def train_and_predict_LSTM(indicators_df, tickers):
-    future_market_predictions = {}
-    
+# Function to train LSTM models for different stock tickers
+def train_LSTM_models(indicators_df, tickers, n_steps=20):
     # Callbacks for early stopping and learning rate reduction
     early_stopping = EarlyStopping(monitor='loss', patience=20)
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2, patience=5, min_lr=0.001)
@@ -89,56 +94,68 @@ def train_and_predict_LSTM(indicators_df, tickers):
     sample_ticker = tickers[0]  # Using the first ticker as a sample
     sample_df_ticker = indicators_df.filter(like=sample_ticker)
     sample_df_ticker_scaled = MinMaxScaler().fit_transform(sample_df_ticker)
-    sample_shape = (1, sample_df_ticker_scaled.shape[1])
+    sample_shape = (n_steps, sample_df_ticker_scaled.shape[1] - 1)
     base_model = create_model(sample_shape)
     base_optimizer = Adam(learning_rate=LEARNING_RATE)
     base_model.compile(optimizer=base_optimizer, loss='mean_squared_error')
     
-    # Loop over each stock ticker
     for ticker in tickers:
-        
         df_ticker = indicators_df.filter(like=ticker)
-        
-        # Skip if there are any null values
         if df_ticker.isnull().values.any():
             continue
         
-        # Clone the base model and compile it
         model = tf.keras.models.clone_model(base_model)
         optimizer = Adam(learning_rate=LEARNING_RATE)
         model.compile(optimizer=optimizer, loss='mean_squared_error')
         
-        # Data scaling and preparation
         scaler = MinMaxScaler(feature_range=(0, 1))
         df_ticker_scaled = scaler.fit_transform(df_ticker)
-        # TODO: Implement create_sequences
-        # X, Y = create_sequences(df_ticker_scaled)  # Assumed function; modify accordingly
+        X, Y = create_sequences(df_ticker_scaled, n_steps)
         
-        # # Train the model
-        # model.fit(X, Y, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_split=0.2, callbacks=[early_stopping, reduce_lr])
+        model.fit(X, Y, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_split=0.2, callbacks=[early_stopping, reduce_lr])
         
-        # Make predictions on the last available data point
-        last_values_scaled = df_ticker_scaled[-1].reshape(1, -1)
-        last_values_scaled = np.reshape(last_values_scaled, (last_values_scaled.shape[0], 1, last_values_scaled.shape[1]))
-        future_scaled = custom_predict(model, last_values_scaled)
-        
-        # Inverse scale the prediction
-        future_unscaled = scaler.inverse_transform(np.hstack((future_scaled, np.zeros((future_scaled.shape[0], df_ticker_scaled.shape[1]-1)))))
-        
-        # Store the prediction
-        future_market_predictions[ticker] = future_unscaled[0, 0]
-        
-        # Clear the Keras session
+        model.save(f"CSI4900-Stock-Prediction-Project/backend/models/models/model_{ticker}")
         K.clear_session()
+
+# Function to make predictions with trained LSTM models for different stock tickers
+def predict_with_LSTM(indicators_df, tickers, n_steps=20):
+    future_market_predictions = {}
+    
+    for ticker in tickers:
+        try:
+            model = load_model(f'models/model_{ticker}')
+            df_ticker = indicators_df.filter(like=ticker)
+            if df_ticker.isnull().values.any():
+                continue
+            
+            scaler = MinMaxScaler(feature_range=(0, 1))
+            df_ticker_scaled = scaler.fit_transform(df_ticker)
+            
+            last_values_scaled = df_ticker_scaled[-n_steps:, :-1].reshape(1, n_steps, df_ticker_scaled.shape[1] - 1)
+            future_scaled = custom_predict(model, last_values_scaled)
+            
+            future_unscaled = scaler.inverse_transform(
+                np.hstack((future_scaled, np.zeros((future_scaled.shape[0], df_ticker_scaled.shape[1]-1))))
+            )
+            
+            future_market_predictions[ticker] = future_unscaled[0, 0]
+        except IOError:
+            print(f"Model for {ticker} could not be found. Skipping prediction.")
+        finally:
+            K.clear_session()
     
     return future_market_predictions
 
+
 # Used for standalone testing
 if __name__ == "__main__":
-    # TODO: Change this to use function call
     tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "BRK-B", "V", "JNJ", "WMT", "PG"]
     data = yf.download(tickers, period="1y")
     close_prices = data['Close']
     stock_indicators = calculate_indicators(close_prices, tickers)
-    future_market_predictions = train_and_predict_LSTM(stock_indicators, tickers)
+    # Train models (might be run less frequently, e.g., monthly)
+    # train_LSTM_models(stock_indicators, tickers)
+
+    # Predict with the trained models (might be run daily)
+    future_market_predictions = predict_with_LSTM(stock_indicators, tickers)
     print(future_market_predictions)
