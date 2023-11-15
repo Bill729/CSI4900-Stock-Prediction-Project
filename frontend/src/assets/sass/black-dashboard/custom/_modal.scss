@@ -38,6 +38,9 @@
   // Where all modal content resides (sibling of .modal-header and .modal-footer)
   .modal-body {
     line-height: 1.9;
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
 
     p{
       color: $black;
@@ -146,6 +149,7 @@
   .modal-content{
     .modal-header{
       padding: 24px;
+      padding-bottom: 0;
     }
   }
 

@@ -161,13 +161,22 @@
 
   export default {
     components: {
-    LineChart,
-    BarChart,
-    TaskList,
-    UserTable,
-    // LineChart1,
-    // LineChart1
-},
+      LineChart,
+      BarChart,
+      TaskList,
+      UserTable,
+      // LineChart1,
+      // LineChart1
+    },
+    // props: {
+    //   ticker: String
+    // },
+    // watch: {
+    //   tickerProp: function(newTicker) {
+    //     console.log("newTicker is: " + newTicker);
+    //     this.ticker = newTicker;
+    //   }
+    // },
     data() {
       return {
         arrStock: [],
@@ -179,6 +188,7 @@
         backgroundColor: "#74A57F",
         msg: '',
         msg1: ''
+        // ticker: 'AAPL'
       },
         stockData: {
         "AAPL": {
@@ -351,6 +361,18 @@
         this.bigLineChart.chartData = chartData;
         this.bigLineChart.activeIndex = index;
       }
+      // getTicker() {
+      //   const uri = 'http://127.0.0.1:5000/stock/' + this.ticker + '/info';
+      //   console.log(uri);
+      //   axios.get(uri)
+      //   .then((res) => {
+      //     console.log(res);
+      //     return res.data;
+      //   })
+      //   .catch((error) => {
+      //     console.error(error);
+      //   });
+      // }
     },
     mounted() {
       this.i18n = this.$i18n;
@@ -359,6 +381,7 @@
         this.$rtl.enableRTL();
       }
       this.initBigChart(0);
+      // this.getTicker(this.ticker);
     },
     beforeDestroy() {
       if (this.$rtl.isRTL) {
