@@ -1,4 +1,4 @@
-<template>
+<template v-slot="">
   <nav class="navbar navbar-expand-lg navbar-absolute"
        :class="{'bg-white': showMenu, 'navbar-transparent': !showMenu}">
     <div class="container-fluid">
@@ -45,7 +45,9 @@
               <input slot="header" v-model="searchQuery" type="text" class="form-control" id="inlineFormInputGroup" placeholder="SEARCH">
               <ul id="ul-ticker">
                 <li class="li-ticker" v-for="ticker in tickers" :key="ticker">
-                  <button v-if="searchQuery != '' && ticker.includes(searchQuery)" class="btn btn-secondary active">{{ ticker }}</button>
+                  <button @click="emitTicker(ticker)" v-if="searchQuery == 'ALL' || searchQuery != '' && ticker.includes(searchQuery)" class="btn btn-secondary active">
+                    {{ ticker }}
+                  </button>
                 </li>
               </ul>
             </modal>
@@ -110,6 +112,7 @@
   import { CollapseTransition } from 'vue2-transitions';
   import Modal from '@/components/Modal';
   import axios from 'axios';
+  import EventBus from '../../js/event-bus';
 
   export default {
     components: {
@@ -167,6 +170,10 @@
       },
       toggleMenu() {
         this.showMenu = !this.showMenu;
+      },
+      emitTicker(ticker) {
+        console.log(ticker);
+        EventBus.$emit('ticker', ticker);
       }
     },
     mounted(){

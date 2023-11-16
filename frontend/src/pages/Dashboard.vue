@@ -157,7 +157,7 @@
   // import LineChart1 from '@/components/LineChart1';
   import axios from 'axios';
   // import LineChart1 from '../components/LineChart1.vue';
-
+  import EventBus from '../js/event-bus';
 
   export default {
     components: {
@@ -168,15 +168,15 @@
       // LineChart1,
       // LineChart1
     },
-    // props: {
-    //   ticker: String
-    // },
-    // watch: {
-    //   tickerProp: function(newTicker) {
-    //     console.log("newTicker is: " + newTicker);
-    //     this.ticker = newTicker;
-    //   }
-    // },
+    props: {
+      ticker: String
+    },
+    watch: {
+      tickerProp: function(newTicker) {
+        console.log("newTicker is: " + newTicker);
+        this.ticker = newTicker;
+      }
+    },
     data() {
       return {
         arrStock: [],
@@ -187,8 +187,8 @@
         pointBackgroundColor: "#AFD6AC",
         backgroundColor: "#74A57F",
         msg: '',
-        msg1: ''
-        // ticker: 'AAPL'
+        msg1: '',
+        ticker: 'AAPL'
       },
         stockData: {
         "AAPL": {
@@ -360,19 +360,19 @@
         this.$refs.bigChart.updateGradients(chartData);
         this.bigLineChart.chartData = chartData;
         this.bigLineChart.activeIndex = index;
+      },
+      getTicker(ticker) {
+        const uri = 'http://127.0.0.1:5000/stock/' + ticker + '/info';
+        console.log(uri);
+        axios.get(uri)
+        .then((res) => {
+          console.log(res);
+          return res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
       }
-      // getTicker() {
-      //   const uri = 'http://127.0.0.1:5000/stock/' + this.ticker + '/info';
-      //   console.log(uri);
-      //   axios.get(uri)
-      //   .then((res) => {
-      //     console.log(res);
-      //     return res.data;
-      //   })
-      //   .catch((error) => {
-      //     console.error(error);
-      //   });
-      // }
     },
     mounted() {
       this.i18n = this.$i18n;
@@ -382,6 +382,10 @@
       }
       this.initBigChart(0);
       // this.getTicker(this.ticker);
+      EventBus.$on('ticker', function (ticker) {
+        this.ticker = ticker;
+        console.log(this.ticker);
+      });
     },
     beforeDestroy() {
       if (this.$rtl.isRTL) {
