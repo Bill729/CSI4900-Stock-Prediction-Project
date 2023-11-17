@@ -111,6 +111,9 @@ export default {
         documentClasses.remove("modal-open");
       }
     }
+  },
+  mounted(){
+    this.$root.$on('closeAfterSelect', this.$emit("close"));
   }
 };
 </script>

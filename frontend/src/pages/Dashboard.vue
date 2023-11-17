@@ -43,6 +43,18 @@
     </div>
     <div class="row">
       <div class="col-lg-4" :class="{'text-right': isRTL}">
+        <card v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
+          <h5 class="card-category">{{ key }}</h5>
+          <h3 class="card-title">
+            <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->
+            {{ ($store.getters.getSelectedTickerData().info)[key] }}
+          </h3>
+        </card>
+      </div>
+
+    </div>
+    <div class="row">
+      <div class="col-lg-4" :class="{'text-right': isRTL}">
         <card type="chart">
           <template slot="header">
             <h5 class="card-category">{{$t('dashboard.totalShipments')}}</h5>
@@ -92,7 +104,7 @@
         </card>
       </div>
     </div>
-    <div class="row">
+    <div class="row">{{ this.$store.getters.getSelectedTickerData() }}
       <div class="col-lg-6 col-md-12">
         <card type="tasks" :header-classes="{'text-right': isRTL}">
           <template slot="header">
@@ -157,7 +169,6 @@
   // import LineChart1 from '@/components/LineChart1';
   import axios from 'axios';
   // import LineChart1 from '../components/LineChart1.vue';
-  import EventBus from '../js/event-bus';
 
   export default {
     components: {
@@ -362,11 +373,7 @@
         this.bigLineChart.activeIndex = index;
       },
       async getTicker() {
-        console.log(this.$store.getters.getSelectedTickerData());
-        await this.$store.dispatch("changeSelectedTicker", { name: "AAPL" });
-        console.log(this.$store.getters.getSelectedTickerData());
-        await this.$store.dispatch("changeSelectedTicker", { name: "V" });
-        console.log(this.$store.getters.getSelectedTickerData());
+        this.$store.getters.getSelectedTickerData();
       }
     },
     mounted() {
@@ -376,11 +383,6 @@
         this.$rtl.enableRTL();
       }
       this.initBigChart(0);
-      // this.getTicker(this.ticker);
-      EventBus.$on('ticker', function (ticker) {
-        this.ticker = ticker;
-        console.log(this.ticker);
-      });
       this.getTicker();
     },
     beforeDestroy() {

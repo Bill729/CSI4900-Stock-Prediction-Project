@@ -42,10 +42,10 @@
                    id="searchModal"
                    :centered="false"
                    :show-close="true">
-              <input slot="header" v-model="searchQuery" type="text" class="form-control" id="inlineFormInputGroup" placeholder="SEARCH">
+              <input slot="header" v-model="searchQuery" type="text" class="form-control" id="inlineFormInputGroup" placeholder="SEARCH or TYPE 'ALL' for all tickers">
               <ul id="ul-ticker">
                 <li class="li-ticker" v-for="ticker in tickers" :key="ticker">
-                  <button @click="emitTicker(ticker)" v-if="searchQuery == 'ALL' || searchQuery != '' && ticker.includes(searchQuery)" class="btn btn-secondary active">
+                  <button @click="changeSelectedTicker(ticker);" v-if="searchQuery == 'ALL' || searchQuery != '' && ticker.includes(searchQuery)" class="btn btn-secondary active">
                     {{ ticker }}
                   </button>
                 </li>
@@ -112,7 +112,6 @@
   import { CollapseTransition } from 'vue2-transitions';
   import Modal from '@/components/Modal';
   import axios from 'axios';
-  import EventBus from '../../js/event-bus';
 
   export default {
     components: {
@@ -171,9 +170,8 @@
       toggleMenu() {
         this.showMenu = !this.showMenu;
       },
-      emitTicker(ticker) {
-        console.log(ticker);
-        EventBus.$emit('ticker', ticker);
+      async changeSelectedTicker(ticker) {
+        await this.$store.dispatch("changeSelectedTicker", { name: ticker });
       }
     },
     mounted(){
