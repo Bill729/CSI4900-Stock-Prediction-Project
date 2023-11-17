@@ -361,17 +361,12 @@
         this.bigLineChart.chartData = chartData;
         this.bigLineChart.activeIndex = index;
       },
-      getTicker(ticker) {
-        const uri = 'http://127.0.0.1:5000/stock/' + ticker + '/info';
-        console.log(uri);
-        axios.get(uri)
-        .then((res) => {
-          console.log(res);
-          return res.data;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+      async getTicker() {
+        console.log(this.$store.getters.getSelectedTickerData());
+        await this.$store.dispatch("changeSelectedTicker", { name: "AAPL" });
+        console.log(this.$store.getters.getSelectedTickerData());
+        await this.$store.dispatch("changeSelectedTicker", { name: "V" });
+        console.log(this.$store.getters.getSelectedTickerData());
       }
     },
     mounted() {
@@ -386,6 +381,7 @@
         this.ticker = ticker;
         console.log(this.ticker);
       });
+      this.getTicker();
     },
     beforeDestroy() {
       if (this.$rtl.isRTL) {
