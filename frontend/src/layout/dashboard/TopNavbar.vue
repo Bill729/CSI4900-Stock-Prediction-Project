@@ -172,6 +172,9 @@
       },
       async changeSelectedTicker(ticker) {
         await this.$store.dispatch("changeSelectedTicker", { name: ticker });
+
+        this.$store.dispatch('changeSelectedStockSymbol', ticker);
+
       }
     },
     mounted(){

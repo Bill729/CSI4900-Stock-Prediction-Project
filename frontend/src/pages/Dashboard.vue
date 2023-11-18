@@ -1,47 +1,18 @@
 <template>
   <div>
-    <div class="row">
-      <div class="col-12">
-        <card type="chart">
-          <template slot="header">
-            <div class="row">
-              <div class="col-sm-6" :class="isRTL ? 'text-right' : 'text-left'">
-                <h5 class="card-category">{{$t('dashboard.totalShipments')}}</h5>
-                <h2 class="card-title">{{$t('dashboard.performance')}}</h2>
-              </div>
-              <div class="col-sm-6">
-                <div class="btn-group btn-group-toggle"
-                     :class="isRTL ? 'float-left' : 'float-right'"
-                     data-toggle="buttons">
-                  <label v-for="(option, index) in bigLineChartCategories"
-                         :key="option"
-                         class="btn btn-sm btn-primary btn-simple"
-                         :class="{active: bigLineChart.activeIndex === index}"
-                         :id="index">
-                    <input type="radio"
-                           @click="initBigChart(index)"
-                           name="options" autocomplete="off"
-                           :checked="bigLineChart.activeIndex === index">
-                    {{option}}
-                  </label>
-                </div>
-              </div>
-            </div>
-          </template>
-          <div class="chart-area">
-            <line-chart style="height: 100%"
-                        ref="bigChart"
-                        chart-id="big-line-chart"
-                        :chart-data="bigLineChart.chartData"
-                        :gradient-colors="bigLineChart.gradientColors"
-                        :gradient-stops="bigLineChart.gradientStops"
-                        :extra-options="bigLineChart.extraOptions">
-            </line-chart>
-          </div>
-        </card>
+    <div class="chart-container" v-if="selectedStock">
+      <div class="chart-controls">
+        <button @click="updateTimeFrame('1W')">1W</button>
+        <button @click="updateTimeFrame('1M')">1M</button>
+        <button @click="updateTimeFrame('3M')">3M</button>
+        <button @click="updateTimeFrame('1Y')">1Y</button>
+        <button @click="updateTimeFrame('ALL')">ALL</button>
+      </div>
+      <div class="lineChart">
+        <canvas id="myChart"></canvas>
       </div>
     </div>
-    <div class="row">
+    <div class="row">{{ this.$store.getters.getSelectedTickerData() }}
       <div class="col-lg-4" :class="{'text-right': isRTL}">
         <card v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
           <h5 class="card-category">{{ key }}</h5>
@@ -51,347 +22,157 @@
           </h3>
         </card>
       </div>
+    </div>
+    <!-- Remaining content of the Dashboard -->
+    <div class="row">
+      <!-- Other content rows and cards -->
+    </div>
 
-    </div>
-    <div class="row">
-      <div class="col-lg-4" :class="{'text-right': isRTL}">
-        <card type="chart">
-          <template slot="header">
-            <h5 class="card-category">{{$t('dashboard.totalShipments')}}</h5>
-            <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary "></i> 763,215</h3>
-          </template>
-          <div class="chart-area">
-            <line-chart style="height: 100%"
-                        chart-id="purple-line-chart"
-                        :chart-data="purpleLineChart.chartData"
-                        :gradient-colors="purpleLineChart.gradientColors"
-                        :gradient-stops="purpleLineChart.gradientStops"
-                        :extra-options="purpleLineChart.extraOptions">
-            </line-chart>
-          </div>
-        </card>
-      </div>
-      <div class="col-lg-4" :class="{'text-right': isRTL}">
-        <card type="chart">
-          <template slot="header">
-            <h5 class="card-category">{{$t('dashboard.dailySales')}}</h5>
-            <h3 class="card-title"><i class="tim-icons icon-delivery-fast text-info "></i> 3,500€</h3>
-          </template>
-          <div class="chart-area">
-            <bar-chart style="height: 100%"
-                       chart-id="blue-bar-chart"
-                       :chart-data="blueBarChart.chartData"
-                       :gradient-stops="blueBarChart.gradientStops"
-                       :extra-options="blueBarChart.extraOptions">
-            </bar-chart>
-          </div>
-        </card>
-      </div>
-      <div class="col-lg-4" :class="{'text-right': isRTL}">
-        <card type="chart">
-          <template slot="header">
-            <h5 class="card-category">{{$t('dashboard.completedTasks')}}</h5>
-            <h3 class="card-title"><i class="tim-icons icon-send text-success "></i> 12,100K</h3>
-          </template>
-          <div class="chart-area">
-            <line-chart style="height: 100%"
-                        chart-id="green-line-chart"
-                        :chart-data="greenLineChart.chartData"
-                        :gradient-stops="greenLineChart.gradientStops"
-                        :extra-options="greenLineChart.extraOptions">
-            </line-chart>
-          </div>
-        </card>
-      </div>
-    </div>
-    <div class="row">{{ this.$store.getters.getSelectedTickerData() }}
-      <div class="col-lg-6 col-md-12">
-        <card type="tasks" :header-classes="{'text-right': isRTL}">
-          <template slot="header">
-            <h6 class="title d-inline">{{$t('dashboard.tasks', {count: 5})}}</h6>
-            <p class="card-category d-inline">{{$t('dashboard.today')}}</p>
-            <base-dropdown menu-on-right=""
-                           tag="div"
-                           title-classes="btn btn-link btn-icon"
-                           aria-label="Settings menu"
-                           :class="{'float-left': isRTL}">
-              <i slot="title" class="tim-icons icon-settings-gear-63"></i>
-              <a class="dropdown-item" href="#pablo">{{$t('dashboard.dropdown.action')}}</a>
-              <a class="dropdown-item" href="#pablo">{{$t('dashboard.dropdown.anotherAction')}}</a>
-              <a class="dropdown-item" href="#pablo">{{$t('dashboard.dropdown.somethingElse')}}</a>
-            </base-dropdown>
-          </template>
-          <div class="table-full-width table-responsive">
-            <task-list></task-list>
-          </div>
-        </card>
-      </div>
-      <div class="col-lg-6 col-md-12">
-        <card class="card" :header-classes="{'text-right': isRTL}">
-          <h4 slot="header" class="card-title">{{$t('dashboard.simpleTable')}}</h4>
-          <div class="table-responsive">
-            <user-table></user-table>
-          </div>
-        </card>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-12">
-        <card type="chart">
-          <template slot="header">
-            <!-- You can customize the chart header as needed -->
-            <h5 class="card-category">New Chart Category</h5>
-            <h2 class="card-title">New Chart Title</h2>
-          </template>
-          <div class="chart-area">
-            <line-chart style="height: 100%"
-                        ref="bigChart"
-                        chart-id="big-line-chart"
-                        :chart-data="bigLineChart.chartData"
-                        :gradient-colors="bigLineChart.gradientColors"
-                        :gradient-stops="bigLineChart.gradientStops"
-                        :extra-options="bigLineChart.extraOptions">
-                        label="stocks"
-            </line-chart>
-          </div>
-        </card>
-      </div>
-    </div>
+    <!-- ... other rows and components ... -->
   </div>
 </template>
+
 <script>
-  import LineChart from '@/components/Charts/LineChart';
-  import BarChart from '@/components/Charts/BarChart';
-  import * as chartConfigs from '@/components/Charts/config';
-  import TaskList from './Dashboard/TaskList';
-  import UserTable from './Dashboard/UserTable';
-  import config from '@/config';
-  // import LineChart1 from '@/components/LineChart1';
-  import axios from 'axios';
-  // import LineChart1 from '../components/LineChart1.vue';
+import Chart from 'chart.js';
+import axios from 'axios';
+import moment from 'moment';
 
-  export default {
-    components: {
-      LineChart,
-      BarChart,
-      TaskList,
-      UserTable,
-      // LineChart1,
-      // LineChart1
-    },
-    props: {
-      ticker: String
-    },
-    watch: {
-      tickerProp: function(newTicker) {
-        console.log("newTicker is: " + newTicker);
-        this.ticker = newTicker;
-      }
-    },
-    data() {
-      return {
-        arrStock: [],
-        arrCurrentPrice: [],
-        stockChartColors: {
-        borderColor: "#077187",
-        pointBorderColor: "#0E1428",
-        pointBackgroundColor: "#AFD6AC",
-        backgroundColor: "#74A57F",
-        msg: '',
-        msg1: '',
-        ticker: 'AAPL'
-      },
-        stockData: {
-        "AAPL": {
-          "currentPrice": 166.89
-        },
-        "AMZN": {
-          "currentPrice": 119.57
-        },
-        "BRK-B": {
-          "currentPrice": 336.16
-        },
-        "GOOGL": {
-          "currentPrice": 122.28
-        },
-        "JNJ": {
-          "currentPrice": 149.0
-        },
-        "META": {
-          "currentPrice": 288.35
-        },
-        "MSFT": {
-          "currentPrice": 327.89
-        },
-        "PG": {
-          "currentPrice": 149.8
-        },
-        "V": {
-          "currentPrice": 231.28
-        },
-        "WMT": {
-          "currentPrice": 161.77
-        }
-      },
-      chartOptions: {
-        responsive: true,
-        maintainAspectRatio: false
-      },
-        bigLineChart: {
-          allData: [
-            [100, 70, 90, 70, 85, 60, 75, 60, 90, 80, 110, 100],
-            [80, 120, 105, 110, 95, 105, 90, 100, 80, 95, 70, 120],
-            [60, 80, 65, 130, 80, 105, 90, 130, 70, 115, 60, 130]
-          ],
-          activeIndex: 0,
-          chartData: {
-            datasets: [{ }],
-            labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
-          },
-          extraOptions: chartConfigs.purpleChartOptions,
-          gradientColors: config.colors.primaryGradient,
-          gradientStops: [1, 0.4, 0],
-          categories: []
-        },
-        purpleLineChart: {
-          extraOptions: chartConfigs.purpleChartOptions,
-          chartData: {
-            labels: ['JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
-            datasets: [{
-              label: "Data",
-              fill: true,
-              borderColor: config.colors.primary,
-              borderWidth: 2,
-              borderDash: [],
-              borderDashOffset: 0.0,
-              pointBackgroundColor: config.colors.primary,
-              pointBorderColor: 'rgba(255,255,255,0)',
-              pointHoverBackgroundColor: config.colors.primary,
-              pointBorderWidth: 20,
-              pointHoverRadius: 4,
-              pointHoverBorderWidth: 15,
-              pointRadius: 4,
-              data: [80, 100, 70, 80, 120, 80],
-            }]
-          },
-          gradientColors: config.colors.primaryGradient,
-          gradientStops: [1, 0.2, 0],
-        },
-        greenLineChart: {
-          extraOptions: chartConfigs.greenChartOptions,
-          chartData: {
-            labels: ['JUL', 'AUG', 'SEP', 'OCT', 'NOV'],
-            datasets: [{
-              label: "My First dataset",
-              fill: true,
-              borderColor: config.colors.danger,
-              borderWidth: 2,
-              borderDash: [],
-              borderDashOffset: 0.0,
-              pointBackgroundColor: config.colors.danger,
-              pointBorderColor: 'rgba(255,255,255,0)',
-              pointHoverBackgroundColor: config.colors.danger,
-              pointBorderWidth: 20,
-              pointHoverRadius: 4,
-              pointHoverBorderWidth: 15,
-              pointRadius: 4,
-              data: [90, 27, 60, 12, 80],
-            }]
-          },
-          gradientColors: ['rgba(66,134,121,0.15)', 'rgba(66,134,121,0.0)', 'rgba(66,134,121,0)'],
-          gradientStops: [1, 0.4, 0],
-        },
-        blueBarChart: {
-          extraOptions: chartConfigs.barChartOptions,
-          chartData: {
-            labels: ['USA', 'GER', 'AUS', 'UK', 'RO', 'BR'],
-            datasets: [{
-              label: "Countries",
-              fill: true,
-              borderColor: config.colors.info,
-              borderWidth: 2,
-              borderDash: [],
-              borderDashOffset: 0.0,
-              data: [53, 20, 10, 80, 100, 45],
-            }]
-          },
-          gradientColors: config.colors.primaryGradient,
-          gradientStops: [1, 0.4, 0],
-        }
-      }
-    },
-    async created(){
-      try{        
-        for(const stockSymbol1 in this.stockData){
-        const stock = this.stockData[stockSymbol1];
-        const currentPrice = stock.currentPrice;
-        const stockSymbol = stockSymbol1;
-        
-
-        console.log(stockSymbol, currentPrice);
-        
-      }
-       
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    },
-    computed: {
-      enableRTL() {
-        return this.$route.query.enableRTL;
-      },
-      isRTL() {
-        return this.$rtl.isRTL;
-      },
-      bigLineChartCategories() {
-        return this.$t('dashboard.chartCategories');
-      }
-    },
-    methods: {
-      initBigChart(index) {
-        let chartData = {
-          datasets: [{
-            fill: true,
-            borderColor: config.colors.primary,
-            borderWidth: 2,
-            borderDash: [],
-            borderDashOffset: 0.0,
-            pointBackgroundColor: config.colors.primary,
-            pointBorderColor: 'rgba(255,255,255,0)',
-            pointHoverBackgroundColor: config.colors.primary,
-            pointBorderWidth: 20,
-            pointHoverRadius: 4,
-            pointHoverBorderWidth: 15,
-            pointRadius: 4,
-            data: this.bigLineChart.allData[index]
-          }],
-          labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
-        }
-        this.$refs.bigChart.updateGradients(chartData);
-        this.bigLineChart.chartData = chartData;
-        this.bigLineChart.activeIndex = index;
-      },
-      async getTicker() {
-        this.$store.getters.getSelectedTickerData();
-      }
-    },
-    mounted() {
-      this.i18n = this.$i18n;
-      if (this.enableRTL) {
-        this.i18n.locale = 'ar';
-        this.$rtl.enableRTL();
-      }
-      this.initBigChart(0);
-      this.getTicker();
-    },
-    beforeDestroy() {
-      if (this.$rtl.isRTL) {
-        this.i18n.locale = 'en';
-        this.$rtl.disableRTL();
+export default {
+  name: 'Dashboard',
+  computed: {
+    selectedStock() {
+      return this.$store.getters.getSelectedStockSymbol;
+    }
+  },
+  watch: {
+    selectedStock(newSymbol, oldSymbol) {
+      if (newSymbol !== oldSymbol && newSymbol !== '') {
+        this.fetchAndDisplayStockData(newSymbol);
       }
     }
-  };
+  },
+  methods: {
+    async fetchAndDisplayStockData(stockSymbol) {
+    try {
+      const response = await axios.get(`http://127.0.0.1:5000/stock/${stockSymbol}/prices`);
+      this.allData = response.data;
+      this.createChart(this.allData, 'ALL');
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  },
+    createChart(stockData, timeFrame) {
+      const filteredData = this.filterData(stockData, timeFrame);
+      const ctx = document.getElementById('myChart').getContext('2d');
+      const labels = Object.keys(filteredData.historical).map(timestamp =>
+        moment.unix(timestamp).format('MMM YYYY')
+      );
+      const data = Object.values(filteredData.historical);
+
+      if (this.chart) {
+        this.chart.destroy();
+      }
+
+      this.chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: this.selectedStock,
+            data,
+            fill: false,
+            borderColor: '#007bff',
+            tension: 0.1
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: false,
+            },
+          },
+          plugins: {
+            legend: {
+              display: true,
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+            },
+          },
+        },
+      });
+    },
+      filterData(stockData, timeFrame) {
+        if (timeFrame === 'ALL') {
+          return stockData; 
+        }
+  
+        const endDate = moment().unix();
+        let startDate;
+  
+        switch (timeFrame) {
+          case '1W':
+            startDate = moment().subtract(1, 'weeks').unix();
+            break;
+          case '1M':
+            startDate = moment().subtract(1, 'months').unix();
+            break;
+          case '3M':
+            startDate = moment().subtract(3, 'months').unix();
+            break;
+          case '1Y':
+            startDate = moment().subtract(1, 'years').unix();
+            break;
+          default:
+            startDate = moment().subtract(1, 'years').unix();
+        }
+  
+        return {
+          historical: Object.fromEntries(
+            Object.entries(stockData.historical).filter(
+              ([timestamp]) => timestamp >= startDate && timestamp <= endDate
+            )
+          ),
+        };
+      },
+    updateTimeFrame(timeFrame) {
+      this.createChart(this.allData, timeFrame);
+    },
+    
+  }, async getTicker() {
+        this.$store.getters.getSelectedTickerData();
+      }
+  
+};
 </script>
-<style>
+
+<style scoped>
+.chart-container {
+  text-align: center;
+}
+
+.chart-controls button {
+  margin: 5px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.chart-controls button:hover {
+  background-color: #0056b3;
+}
+
+.lineChart {
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  margin: auto;
+}
+/* Other styles... */
 </style>
