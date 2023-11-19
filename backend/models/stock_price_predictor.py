@@ -146,47 +146,8 @@ def train_LSTM_models(indicators_df, tickers, n_steps=20):
     
 #     return future_market_predictions
 
-# def predict_next_5_days(indicators_df, tickers, n_steps=20):
-#     future_market_predictions = {}
 
-#     for ticker in tickers:
-#         try:
-#             model = load_model(f'backend/models/models/model_{ticker}')
-#             df_ticker = indicators_df.filter(like=ticker)
-#             if df_ticker.isnull().values.any():
-#                 continue
-
-#             scaler = MinMaxScaler(feature_range=(0, 1))
-#             df_ticker_scaled = scaler.fit_transform(df_ticker)
-
-#             # Initialize an array to hold the predictions for the next 5 days
-#             predictions = []
-
-#             for day in range(5):
-#                 # Take the last n_steps data points for prediction
-#                 last_values_scaled = df_ticker_scaled[-n_steps:, :-1].reshape(1, n_steps, df_ticker_scaled.shape[1] - 1)
-#                 future_scaled = custom_predict(model, last_values_scaled)
-
-#                 # Inverse transform the prediction and append to predictions
-#                 future_unscaled = scaler.inverse_transform(
-#                     np.hstack((future_scaled, np.zeros((future_scaled.shape[0], df_ticker_scaled.shape[1]-1))))
-#                 )
-#                 next_day_prediction = future_unscaled[0, 0]
-#                 predictions.append(next_day_prediction)
-
-#                 # Update df_ticker_scaled with the new prediction for the next iteration
-#                 next_day_scaled = scaler.transform([[next_day_prediction] + [0]*(df_ticker_scaled.shape[1]-1)])
-#                 df_ticker_scaled = np.append(df_ticker_scaled, next_day_scaled, axis=0)
-
-#             future_market_predictions[ticker] = predictions
-#         except IOError:
-#             print(f"Model for {ticker} could not be found. Skipping prediction.")
-#         finally:
-#             K.clear_session()
-
-#     return future_market_predictions
-
-def predict_next_5_days(indicators_df, tickers, n_steps=20):
+def predict_for_n_days(indicators_df, tickers, n_days, n_steps=20):
     future_market_predictions = {}
 
     for ticker in tickers:
@@ -200,10 +161,10 @@ def predict_next_5_days(indicators_df, tickers, n_steps=20):
             df_ticker_scaled = scaler.fit_transform(df_ticker)
             column_names = df_ticker.columns  # Capture the column names
 
-            # Initialize an array to hold the predictions for the next 5 days
+            # Initialize an array to hold the predictions for n days
             predictions = []
 
-            for day in range(5):
+            for day in range(n_days):
                 # Take the last n_steps data points for prediction
                 last_n_steps = df_ticker.iloc[-n_steps:]
                 last_values_scaled = scaler.transform(last_n_steps)
@@ -244,5 +205,5 @@ if __name__ == "__main__":
     # train_LSTM_models(stock_indicators, tickers)
 
     # Predict with the trained models (might be run daily)
-    future_market_predictions = predict_next_5_days(stock_indicators, tickers)
+    future_market_predictions = predict_for_n_days(stock_indicators, tickers, 7)
     print(future_market_predictions)
