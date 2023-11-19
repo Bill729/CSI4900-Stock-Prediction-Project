@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-from api_impl import stock_info_impl, tickers_impl, stock_prices_impl
+from api_impl import stock_info_impl, tickers_impl, stock_prices_impl, stock_news_impl
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -34,6 +34,15 @@ Returns all relevant information for a specific stock (Feature 4)
 def get_stock_info(ticker):
     stock_info = stock_info_impl.fetch_single_stock_data(ticker)
     response = jsonify(stock_info)
+    return response
+
+""" 
+Returns a list of recent news articles about a specific stock
+"""
+@app.route('/stock/<ticker>/news', methods=['GET'])
+def get_stock_news(ticker):
+    stock_news = stock_news_impl.get_stock_news(ticker)
+    response = jsonify(stock_news)
     return response
 
 if __name__ == '__main__':
