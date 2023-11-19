@@ -12,16 +12,17 @@
         <canvas id="myChart"></canvas>
       </div>
     </div>
-    <div class="row">{{ this.$store.getters.getSelectedTickerData() }}
-      <div class="col-lg-4" :class="{'text-right': isRTL}">
-        <card v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
-          <h5 class="card-category">{{ key }}</h5>
-          <h3 class="card-title">
-            <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->
-            {{ ($store.getters.getSelectedTickerData().info)[key] }}
-          </h3>
-        </card>
-      </div>
+    <!-- {{ this.$store.getters.getSelectedTickerData() }}
+    {{ Object.keys(this.$store.getters.getSelectedTickerData().info).length }} -->
+    <div style="min-width: auto; min-height: auto; display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">
+      <!-- v-if="($store.getters.getSelectedTickerData().info)[key] != 'N/A'" -->
+      <card style="width: auto;" v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
+        <h5 class="card-category">{{ key }}</h5>
+        <h3 class="card-title">
+          <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->
+          {{ ($store.getters.getSelectedTickerData().info)[key] }}
+        </h3>
+      </card>
     </div>
     <!-- Remaining content of the Dashboard -->
     <div class="row">
@@ -39,6 +40,11 @@ import moment from 'moment';
 
 export default {
   name: 'Dashboard',
+  data(){
+    return{
+      numberOfColumns: 3
+    }
+  },
   computed: {
     selectedStock() {
       return this.$store.getters.getSelectedStockSymbol;
@@ -51,6 +57,13 @@ export default {
       }
     }
   },
+  // computed: {
+  //   gridStyle() {
+  //     return {
+  //       gridTemplateColumns: `repeat(${this.numberOfColumns}, minmax(100px, 1fr))`
+  //     }
+  //   }
+  // },
   methods: {
     async fetchAndDisplayStockData(stockSymbol) {
     try {
@@ -60,7 +73,7 @@ export default {
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  },
+    },
     createChart(stockData, timeFrame) {
       const filteredData = this.filterData(stockData, timeFrame);
       const ctx = document.getElementById('myChart').getContext('2d');
@@ -105,7 +118,7 @@ export default {
         },
       });
     },
-      filterData(stockData, timeFrame) {
+    filterData(stockData, timeFrame) {
         if (timeFrame === 'ALL') {
           return stockData; 
         }
@@ -137,15 +150,14 @@ export default {
             )
           ),
         };
-      },
+    },
     updateTimeFrame(timeFrame) {
       this.createChart(this.allData, timeFrame);
     },
-    
-  }, async getTicker() {
-        this.$store.getters.getSelectedTickerData();
-      }
-  
+    async getTicker() {
+      this.$store.getters.getSelectedTickerData();
+    }
+  }, 
 };
 </script>
 
