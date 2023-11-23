@@ -118,33 +118,81 @@ def train_LSTM_models(indicators_df, tickers, n_steps=20):
         K.clear_session()
 
 # Function to make predictions with trained LSTM models for different stock tickers
-def predict_with_LSTM(indicators_df, tickers, n_steps=20):
-    future_market_predictions = {}
+# def predict_with_LSTM(indicators_df, tickers, n_steps=20):
+#     future_market_predictions = {}
     
+#     for ticker in tickers:
+#         try:
+#             model = load_model(f'models/model_{ticker}')
+#             df_ticker = indicators_df.filter(like=ticker)
+#             if df_ticker.isnull().values.any():
+#                 continue
+            
+#             scaler = MinMaxScaler(feature_range=(0, 1))
+#             df_ticker_scaled = scaler.fit_transform(df_ticker)
+            
+#             last_values_scaled = df_ticker_scaled[-n_steps:, :-1].reshape(1, n_steps, df_ticker_scaled.shape[1] - 1)
+#             future_scaled = custom_predict(model, last_values_scaled)
+            
+#             future_unscaled = scaler.inverse_transform(
+#                 np.hstack((future_scaled, np.zeros((future_scaled.shape[0], df_ticker_scaled.shape[1]-1))))
+#             )
+            
+#             future_market_predictions[ticker] = future_unscaled[0, 0]
+#         except IOError:
+#             print(f"Model for {ticker} could not be found. Skipping prediction.")
+#         finally:
+#             K.clear_session()
+    
+#     return future_market_predictions
+
+
+def predict_for_n_days(indicators_df, tickers, n_days, n_steps=20):
+    future_market_predictions = {}
+
     for ticker in tickers:
         try:
-            model = load_model(f'models/model_{ticker}')
+            model = load_model(f'backend/models/models/model_{ticker}')
             df_ticker = indicators_df.filter(like=ticker)
             if df_ticker.isnull().values.any():
                 continue
-            
+
             scaler = MinMaxScaler(feature_range=(0, 1))
             df_ticker_scaled = scaler.fit_transform(df_ticker)
-            
-            last_values_scaled = df_ticker_scaled[-n_steps:, :-1].reshape(1, n_steps, df_ticker_scaled.shape[1] - 1)
-            future_scaled = custom_predict(model, last_values_scaled)
-            
-            future_unscaled = scaler.inverse_transform(
-                np.hstack((future_scaled, np.zeros((future_scaled.shape[0], df_ticker_scaled.shape[1]-1))))
-            )
-            
-            future_market_predictions[ticker] = future_unscaled[0, 0]
+            column_names = df_ticker.columns  # Capture the column names
+
+            # Initialize an array to hold the predictions for n days
+            predictions = []
+
+            for day in range(n_days):
+                # Take the last n_steps data points for prediction
+                last_n_steps = df_ticker.iloc[-n_steps:]
+                last_values_scaled = scaler.transform(last_n_steps)
+
+                # Reshape for the model
+                last_values_scaled = last_values_scaled[:, :-1].reshape(1, n_steps, last_values_scaled.shape[1] - 1)
+                future_scaled = custom_predict(model, last_values_scaled)
+
+                # Inverse transform the prediction and append to predictions
+                future_unscaled = scaler.inverse_transform(
+                    np.hstack((future_scaled, np.zeros((future_scaled.shape[0], len(column_names)-1))))
+                )
+                next_day_prediction = future_unscaled[0, 0]
+                predictions.append(next_day_prediction)
+
+                # Update df_ticker with the new prediction for the next iteration
+                new_row = pd.DataFrame([[next_day_prediction] + [0]*(len(column_names)-1)], columns=column_names)
+                df_ticker = pd.concat([df_ticker, new_row], ignore_index=True)
+
+            future_market_predictions[ticker] = predictions
         except IOError:
             print(f"Model for {ticker} could not be found. Skipping prediction.")
         finally:
             K.clear_session()
-    
+
     return future_market_predictions
+
+
 
 
 # Used for standalone testing
@@ -157,5 +205,5 @@ if __name__ == "__main__":
     # train_LSTM_models(stock_indicators, tickers)
 
     # Predict with the trained models (might be run daily)
-    future_market_predictions = predict_with_LSTM(stock_indicators, tickers)
+    future_market_predictions = predict_for_n_days(stock_indicators, tickers, 7)
     print(future_market_predictions)
