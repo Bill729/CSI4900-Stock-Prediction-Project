@@ -1,5 +1,6 @@
 <template>
   <div>
+    <div v-if="loading" class="loading">Loading...</div>
     <div class="chart-container" v-if="selectedStock">
       <div class="chart-controls">
         <button @click="updateTimeFrame('1W')">1W</button>
@@ -42,6 +43,7 @@ export default {
   name: 'Dashboard',
   data(){
     return{
+      loading: false,
       numberOfColumns: 3
     }
   },
@@ -66,13 +68,16 @@ export default {
   // },
   methods: {
     async fetchAndDisplayStockData(stockSymbol) {
+      this.loading = true;
     try {
       const response = await axios.get(`http://127.0.0.1:5000/stock/${stockSymbol}/prices`);
       this.allData = response.data;
       this.createChart(this.allData, 'ALL');
     } catch (error) {
       console.error('Error fetching data:', error);
-    }
+    }finally {
+        this.loading = false;
+      }
     },
     createChart(stockData, timeFrame) {
       const filteredData = this.filterData(stockData, timeFrame);
@@ -185,6 +190,11 @@ export default {
   max-width: 600px;
   height: 300px;
   margin: auto;
+}
+.loading {
+  /* Styling for your loading indicator */
+  text-align: center;
+  padding: 20px;
 }
 /* Other styles... */
 </style>

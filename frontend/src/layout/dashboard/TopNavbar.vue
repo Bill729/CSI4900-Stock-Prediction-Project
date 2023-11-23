@@ -45,7 +45,7 @@
               <input slot="header" v-model="searchQuery" type="text" class="form-control" id="inlineFormInputGroup" placeholder="SEARCH or TYPE 'ALL' for all tickers">
               <ul id="ul-ticker">
                 <li class="li-ticker" v-for="ticker in tickers" :key="ticker">
-                  <button @click="changeSelectedTicker(ticker);" v-if="searchQuery == 'ALL' || searchQuery != '' && ticker.includes(searchQuery)" class="btn btn-secondary active">
+                  <button @click="changeSelectedTicker(ticker);" v-if="searchQuery.toUpperCase() == 'ALL' || searchQuery != '' && ticker.toUpperCase().includes(searchQuery.toUpperCase())" class="btn btn-secondary active">
                     {{ ticker }}
                   </button>
                 </li>
@@ -171,8 +171,16 @@
         this.showMenu = !this.showMenu;
       },
       async changeSelectedTicker(ticker) {
+
+        this.searchQuery = '';
+        this.searchModalVisible = false;
+
         await this.$store.dispatch("changeSelectedTicker", { name: ticker });
         await this.$store.dispatch('changeSelectedStockSymbol', ticker);
+
+
+        this.$emit('stockSelected', ticker);
+        
       }
     },
     mounted(){
