@@ -20,11 +20,18 @@ def get_historical_prices(ticker):
     
 def get_predicted_prices(ticker):
     data = yf.download([ticker], period="1y")['Close']
-    
     stock_indicators = price_predictor.calculate_indicators(data, [ticker])
-    predicted_prices = price_predictor.predict_for_n_days(stock_indicators, [ticker], NUM_PREDICTED_DAYS)
+    predicted_prices = price_predictor.predict_for_n_days(stock_indicators, [ticker], NUM_PREDICTED_DAYS)[ticker]
     
-    return predicted_prices[ticker]
+    latest_date = data.index.max()
+    latest_epoch = int(latest_date.timestamp())
+    
+    output = {}
+    for i in range(len(predicted_prices)):
+        latest_epoch += 86400
+        output[latest_epoch] = predicted_prices[i]
+    
+    return output
 
 # Used for standalone testing, 
 if __name__ == "__main__":
