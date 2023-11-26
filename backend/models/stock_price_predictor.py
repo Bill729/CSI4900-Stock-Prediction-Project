@@ -206,7 +206,7 @@ def predict_for_n_days(indicators_df, tickers, n_days, n_steps=20):
 
 # Used for standalone testing
 if __name__ == "__main__":
-    tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "BRK-B", "V", "WMT", "PG"][:1]
+    tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "BRK-B", "V", "WMT", "PG"][:2]
     data = yf.download(tickers, period="1y")
     close_prices = data['Close']
     stock_indicators = calculate_indicators(close_prices, tickers)
