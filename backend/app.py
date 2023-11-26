@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-from api_impl import stock_info_impl, tickers_impl, stock_prices_impl, stock_news_impl
+from api_impl import stock_info_impl, tickers_impl, stock_prices_impl, stock_news_impl, model_perf_impl
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -15,6 +15,16 @@ Returns a list of all tickers we are tracking (Feature 1)
 def get_stock_tickers():
     stock_tickers = tickers_impl.get_stock_tickers()
     response = jsonify(stock_tickers)
+    return response
+
+
+'''
+Returns the model's performance information
+'''
+@app.route('/model/performance', methods=['GET'])
+def get_model_performance():
+    model_performance = model_perf_impl.get_model_performance()
+    response = jsonify(model_performance)
     return response
 
 """ 

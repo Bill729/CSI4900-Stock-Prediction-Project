@@ -10,7 +10,6 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 
-
 LEARNING_RATE = 0.005
 EPOCHS = 200
 BATCH_SIZE = 64
@@ -41,12 +40,6 @@ def calculate_single_indicator(ticker, close_prices):
 # Define a function to calculate stock indicators for all listed stock tickers.
 # TODO: Might be deleted in the future
 def calculate_indicators(close_prices, tickers):
-
-    # Download historical stock data for all tickers for the past 1 year.
-    data = yf.download(tickers, period="1y")
-
-    # Select only the 'Close' columns
-    close_prices = data['Close']
 
     with ThreadPoolExecutor() as executor:
         indicators_list = list(executor.map(lambda ticker: calculate_single_indicator(ticker, close_prices), tickers))
@@ -100,8 +93,10 @@ def train_LSTM_models(indicators_df, tickers, n_steps=20):
     base_model.compile(optimizer=base_optimizer, loss='mean_squared_error')
     
     for ticker in tickers:
+        print(f"Training model_{ticker}")
         df_ticker = indicators_df.filter(like=ticker)
         if df_ticker.isnull().values.any():
+            print(f"Found null values in {ticker}'s indicators. Skipping training.")
             continue
         
         model = tf.keras.models.clone_model(base_model)
@@ -114,7 +109,7 @@ def train_LSTM_models(indicators_df, tickers, n_steps=20):
         
         model.fit(X, Y, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_split=0.2, callbacks=[early_stopping, reduce_lr])
         
-        model.save(f"CSI4900-Stock-Prediction-Project/backend/models/models/model_{ticker}")
+        model.save(f"models/models/model_{ticker}")
         K.clear_session()
 
 # Function to make predictions with trained LSTM models for different stock tickers
@@ -123,7 +118,7 @@ def train_LSTM_models(indicators_df, tickers, n_steps=20):
     
 #     for ticker in tickers:
 #         try:
-#             model = load_model(f'models/model_{ticker}')
+#             model = load_model(f'models/models/model_{ticker}')
 #             df_ticker = indicators_df.filter(like=ticker)
 #             if df_ticker.isnull().values.any():
 #                 continue
@@ -151,8 +146,9 @@ def predict_for_n_days(indicators_df, tickers, n_days, n_steps=20):
     future_market_predictions = {}
 
     for ticker in tickers:
+        print(f"Predicting using model_{ticker}")
         try:
-            model = load_model(f'backend/models/models/model_{ticker}')
+            model = load_model(f'models/models/model_{ticker}')
             df_ticker = indicators_df.filter(like=ticker)
             if df_ticker.isnull().values.any():
                 continue
@@ -183,26 +179,22 @@ def predict_for_n_days(indicators_df, tickers, n_days, n_steps=20):
                 # Update df_ticker with the new prediction for the next iteration
                 new_row = pd.DataFrame([[next_day_prediction] + [0]*(len(column_names)-1)], columns=column_names)
                 df_ticker = pd.concat([df_ticker, new_row], ignore_index=True)
-
             future_market_predictions[ticker] = predictions
         except IOError:
             print(f"Model for {ticker} could not be found. Skipping prediction.")
         finally:
             K.clear_session()
-
+    
     return future_market_predictions
-
-
-
 
 # Used for standalone testing
 if __name__ == "__main__":
-    tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "BRK-B", "V", "JNJ", "WMT", "PG"]
+    tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "BRK-B", "V", "WMT", "PG"][:1]
     data = yf.download(tickers, period="1y")
     close_prices = data['Close']
     stock_indicators = calculate_indicators(close_prices, tickers)
     # Train models (might be run less frequently, e.g., monthly)
-    # train_LSTM_models(stock_indicators, tickers)
+    train_LSTM_models(stock_indicators, tickers)
 
     # Predict with the trained models (might be run daily)
     future_market_predictions = predict_for_n_days(stock_indicators, tickers, 7)
