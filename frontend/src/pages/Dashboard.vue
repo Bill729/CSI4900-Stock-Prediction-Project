@@ -1,6 +1,9 @@
 <template>
   <div>
-    <div v-if="loading" class="loading">Loading...</div>
+    <div v-if="loading" class="overlay">
+      <div class="loader"></div>
+    </div>
+    <!-- <div v-else> -->
     <div class="chart-container" v-if="selectedStock">
       <div class="chart-controls">
         <button @click="updateTimeFrame('1W')">1W</button>
@@ -29,8 +32,8 @@
     <div class="row">
       <!-- Other content rows and cards -->
     </div>
-
     <!-- ... other rows and components ... -->
+  <!-- </div> -->
   </div>
 </template>
 
@@ -44,7 +47,14 @@ export default {
   data(){
     return{
       loading: false,
-      numberOfColumns: 3
+      numberOfColumns: 3,
+      allData: null,
+      chart: null,
+    }
+  },
+  mounted() {
+    if (this.selectedStock) {
+      this.fetchAndDisplayStockData(this.selectedStock);
     }
   },
   computed: {
@@ -54,8 +64,14 @@ export default {
   },
   watch: {
     selectedStock(newSymbol, oldSymbol) {
-      if (newSymbol !== oldSymbol && newSymbol !== '') {
+      if (newSymbol && newSymbol !== oldSymbol) {
+        this.loading = true; // Start loading as soon as a new stock is selected
         this.fetchAndDisplayStockData(newSymbol);
+      }
+    },
+    allData(newData, oldData) {
+      if (newData !== oldData) {
+        this.createChart(newData, 'ALL');
       }
     }
   },
@@ -68,15 +84,15 @@ export default {
   // },
   methods: {
     async fetchAndDisplayStockData(stockSymbol) {
-      this.loading = true;
     try {
       const response = await axios.get(`http://127.0.0.1:5000/stock/${stockSymbol}/prices`);
+     // console.log('Fetched data:', response.data); // Log the fetched data
       this.allData = response.data;
       this.createChart(this.allData, 'ALL');
     } catch (error) {
       console.error('Error fetching data:', error);
     }finally {
-        this.loading = false;
+        this.loading = false; // Stop loading
       }
     },
     createChart(stockData, timeFrame) {
@@ -90,7 +106,10 @@ export default {
       if (this.chart) {
         this.chart.destroy();
       }
-
+      // console.log("Predicted",filteredData.predicted);
+      // console.log("Historical", filteredData.historical);
+      // console.log(labels);
+      // console.log(data);
       this.chart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -124,6 +143,10 @@ export default {
       });
     },
     filterData(stockData, timeFrame) {
+      if (!stockData || !stockData.historical) {
+      console.error('Invalid or missing stock data');
+      return {};
+    }
         if (timeFrame === 'ALL') {
           return stockData; 
         }
@@ -161,14 +184,57 @@ export default {
     },
     async getTicker() {
       this.$store.getters.getSelectedTickerData();
-    }
+    },
   }, 
 };
 </script>
 
 <style scoped>
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .chart-container {
-  text-align: center;
+  text-align: left;
+  padding-left: 20px;
+  margin-left: 20px;
+}
+
+.lineChart {
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  margin-left: 0;
+  margin-right: auto;
+  position: relative; 
+}
+
+.chart-controls {
+  text-align: left; 
+  margin-bottom: 10px; 
+  margin-left: 170px;
 }
 
 .chart-controls button {
@@ -184,17 +250,4 @@ export default {
 .chart-controls button:hover {
   background-color: #0056b3;
 }
-
-.lineChart {
-  width: 100%;
-  max-width: 600px;
-  height: 300px;
-  margin: auto;
-}
-.loading {
-  /* Styling for your loading indicator */
-  text-align: center;
-  padding: 20px;
-}
-/* Other styles... */
 </style>

@@ -32,7 +32,7 @@
             <div class="search-bar input-group" @click="searchModalVisible = true">
               <!-- <input type="text" class="form-control" placeholder="Search...">
               <div class="input-group-addon"><i class="tim-icons icon-zoom-split"></i></div> -->
-              <button class="btn btn-link" id="search-button" data-toggle="modal" data-target="#searchModal">
+              <button class="btn btn-link" id="search-button" data-toggle="modal" data-target="#searchModal" @click="focusOnSearchInput">
                 <i class="tim-icons icon-zoom-split"></i>
               </button>
               <!-- You can choose types of search input -->
@@ -42,7 +42,7 @@
                    id="searchModal"
                    :centered="false"
                    :show-close="true">
-              <input slot="header" v-model="searchQuery" type="text" class="form-control" id="inlineFormInputGroup" placeholder="SEARCH or TYPE 'ALL' for all tickers">
+              <input slot="header"  ref="searchInput" v-model="searchQuery" type="text" class="form-control" id="inlineFormInputGroup" placeholder="SEARCH or TYPE 'ALL' for all tickers">
               <ul id="ul-ticker">
                 <li class="li-ticker" v-for="ticker in tickers" :key="ticker">
                   <button @click="changeSelectedTicker(ticker);" v-if="searchQuery.toUpperCase() == 'ALL' || searchQuery != '' && ticker.toUpperCase().includes(searchQuery.toUpperCase())" class="btn btn-secondary active">
@@ -170,10 +170,20 @@
       toggleMenu() {
         this.showMenu = !this.showMenu;
       },
+      focusOnSearchInput() {
+        this.searchModalVisible = true;
+        this.$nextTick(() => {
+          this.$refs.searchInput.focus(); // Focus on the input field
+        });
+      },
       async changeSelectedTicker(ticker) {
 
         this.searchQuery = '';
         this.searchModalVisible = false;
+
+        this.$nextTick(() => {
+          this.$refs.searchInput.focus(); // Focus on the input field
+        });
 
         await this.$store.dispatch("changeSelectedTicker", { name: ticker });
         await this.$store.dispatch('changeSelectedStockSymbol', ticker);
