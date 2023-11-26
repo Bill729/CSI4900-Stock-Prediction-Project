@@ -18,21 +18,34 @@ BATCH_SIZE = 64
 # TODO: Add this to the output of get_stock_info
 def calculate_single_indicator(ticker, close_prices):
 
+    # Check if close_prices is a DataFrame or a Series
+    if isinstance(close_prices, pd.DataFrame):
+        # If it's a DataFrame, check if ticker is in columns
+        if ticker in close_prices.columns:
+            price_data = close_prices[ticker]
+        else:
+            raise ValueError(f'Ticker {ticker} not found in DataFrame columns.')
+    elif isinstance(close_prices, pd.Series):
+        # If it's a Series, use it directly as the price data
+        price_data = close_prices
+    else:
+        raise TypeError('close_prices must be either a pandas DataFrame or Series.')
+    
     indicators = {}  # Initialize an empty dictionary to collect the indicators
 
     # Update the dictionary for each metric
-    indicators[f'{ticker}_SMA'] = close_prices[ticker].rolling(window=20).mean()
-    indicators[f'{ticker}_EMA'] = close_prices[ticker].ewm(span=20).mean()
-    rolling_std = close_prices[ticker].rolling(window=20).std()
+    indicators[f'{ticker}_SMA'] = price_data.rolling(window=20).mean()
+    indicators[f'{ticker}_EMA'] = price_data.ewm(span=20).mean()
+    rolling_std = price_data.rolling(window=20).std()
     indicators[f'{ticker}_Upper_Band'] = indicators[f'{ticker}_SMA'] + (rolling_std * 2)
     indicators[f'{ticker}_Lower_Band'] = indicators[f'{ticker}_SMA'] - (rolling_std * 2)
-    delta = close_prices[ticker].diff()
+    delta = price_data.diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
     rs = gain / loss
     indicators[f'{ticker}_RSI'] = 100 - (100 / (1 + rs))
-    short_ema = close_prices[ticker].ewm(span=12).mean()
-    long_ema = close_prices[ticker].ewm(span=26).mean()
+    short_ema = price_data.ewm(span=12).mean()
+    long_ema = price_data.ewm(span=26).mean()
     indicators[f'{ticker}_MACD'] = short_ema - long_ema
     indicators[f'{ticker}_Signal_Line'] = indicators[f'{ticker}_MACD'].ewm(span=9).mean()
 
@@ -40,6 +53,10 @@ def calculate_single_indicator(ticker, close_prices):
 # Define a function to calculate stock indicators for all listed stock tickers.
 # TODO: Might be deleted in the future
 def calculate_indicators(close_prices, tickers):
+
+    # Handle the case when close_prices is a Series (single ticker)
+    if isinstance(close_prices, pd.Series):
+        close_prices = close_prices.to_frame(tickers[0])  # Convert to DataFrame with the ticker as column name
 
     with ThreadPoolExecutor() as executor:
         indicators_list = list(executor.map(lambda ticker: calculate_single_indicator(ticker, close_prices), tickers))
@@ -197,5 +214,5 @@ if __name__ == "__main__":
     train_LSTM_models(stock_indicators, tickers)
 
     # Predict with the trained models (might be run daily)
-    future_market_predictions = predict_for_n_days(stock_indicators, tickers, 7)
+    future_market_predictions = predict_for_n_days(stock_indicators, tickers, 1)
     print(future_market_predictions)
