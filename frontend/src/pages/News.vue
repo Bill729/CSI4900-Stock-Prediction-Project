@@ -1,17 +1,18 @@
 <template>
-  <div>
-    <div class="news-item" v-for="newsItem in news" :key="newsItem.url" @click="">
-      <a :href="newsItem.url">
-        <img :src="newsItem.urlToImage" :alt="'Photo of article titled: ' + newsItem.title" />
-      </a>
+  <div style="min-width: auto; min-height: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));">
+    <div class="news-item" v-for="newsItem in news" :key="newsItem.url">
+      <div class="img-section">
+        <a :href="newsItem.url">
+          <img :src="newsItem.urlToImage" :alt="'Photo of article titled: ' + newsItem.title" />
+        </a>
+      </div>
       <div id="text-section">
-        <h1 class="card-title">{{ newsItem.title }}</h1>
-        <h4 class="card-title">Published on {{ newsItem.publishedAt.replace('T', ' ').replace('Z', ' ') }}</h4>
-        <h4 class="card-title">Published by {{ newsItem.author }}</h4>
-        <h3 class="card-category">Source: {{ newsItem.source }}</h3>
-        <p>
-          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Possimus autem blanditiis fugiat aspernatur quae saepe vel non. Nam, excepturi maxime esse minima et ad voluptatibus!
-        </p>
+        <a :href="newsItem.url">
+          <h4 class="card-title">{{ newsItem.title }}</h4>
+        </a>
+        <h5 class="card-title">Published on {{ newsItem.publishedAt.replace('T', ' ').replace('Z', ' ') }}</h5>
+        <h5 class="card-title">Published by {{ newsItem.author }}</h5>
+        <h6 class="card-category">From {{ newsItem.source }}</h6>
       </div>
     </div>
   </div>
@@ -46,30 +47,4 @@ export default {
 </script>
 
 <style>
-.news-item{
-  display: flex;
-  margin: 0 auto;
-  width: 90%;
-  margin-bottom: 3rem;
-
-  & > #text-section{
-    padding-left: 1.5rem;
-    & > *{
-      padding: 0;
-      margin: 1rem 0;
-    }
-  }
-
-  & > *{
-    height: 40%;
-  }
-
-  & > a{
-    display: block;
-    width: 40%;
-    & > img{
-      width: 100%;
-    }
-  }
-}
 </style>
