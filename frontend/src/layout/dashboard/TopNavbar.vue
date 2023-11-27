@@ -25,7 +25,6 @@
         <span class="navbar-toggler-bar navbar-kebab"></span>
         <span class="navbar-toggler-bar navbar-kebab"></span>
       </button>
-
       <collapse-transition>
         <div class="collapse navbar-collapse show" v-show="showMenu">
           <ul class="navbar-nav" :class="$rtl.isRTL ? 'mr-auto' : 'ml-auto'">
@@ -133,8 +132,6 @@
         showMenu: false,
         searchModalVisible: false,
         searchQuery: '',
-        hasTickers: false,
-        items: [1,2,3],
         tickers: []
       };
     },
@@ -150,7 +147,6 @@
         axios.get(uri)
         .then((res) => {
           console.log(res);
-          this.hasTickers = true;
           this.tickers = res.data;
           return res.data;
         })
