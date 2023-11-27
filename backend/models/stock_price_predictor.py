@@ -9,6 +9,7 @@ import tensorflow as tf
 import yfinance as yf
 import numpy as np
 import pandas as pd
+import os
 
 LEARNING_RATE = 0.005
 EPOCHS = 200
@@ -126,7 +127,8 @@ def train_LSTM_models(indicators_df, tickers, n_steps=20):
         
         model.fit(X, Y, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_split=0.2, callbacks=[early_stopping, reduce_lr])
         
-        model.save(f"models/models/model_{ticker}")
+        model_path = get_model_path(ticker)
+        model.save(model_path)
         K.clear_session()
 
 # Function to make predictions with trained LSTM models for different stock tickers
@@ -135,7 +137,8 @@ def train_LSTM_models(indicators_df, tickers, n_steps=20):
     
 #     for ticker in tickers:
 #         try:
-#             model = load_model(f'models/models/model_{ticker}')
+#             model_path = get_model_path(ticker)
+#             model = load_model(model_path)
 #             df_ticker = indicators_df.filter(like=ticker)
 #             if df_ticker.isnull().values.any():
 #                 continue
@@ -163,9 +166,10 @@ def predict_for_n_days(indicators_df, tickers, n_days, n_steps=20):
     future_market_predictions = {}
 
     for ticker in tickers:
+        model_path = get_model_path(ticker)
         print(f"Predicting using model_{ticker}")
         try:
-            model = load_model(f'models/models/model_{ticker}')
+            model = load_model(model_path)
             df_ticker = indicators_df.filter(like=ticker)
             if df_ticker.isnull().values.any():
                 continue
@@ -198,11 +202,17 @@ def predict_for_n_days(indicators_df, tickers, n_days, n_steps=20):
                 df_ticker = pd.concat([df_ticker, new_row], ignore_index=True)
             future_market_predictions[ticker] = predictions
         except IOError:
-            print(f"Model for {ticker} could not be found. Skipping prediction.")
+            print(f"Model for {ticker} could not be found in {model_path}. Skipping prediction.")
         finally:
             K.clear_session()
     
     return future_market_predictions
+
+def get_model_path(ticker):
+    model_path = f'\models\model_{ticker}'
+    current_dir_path = os.path.dirname(os.path.abspath(__file__))
+    absolute_path = current_dir_path + model_path
+    return absolute_path
 
 # Used for standalone testing
 if __name__ == "__main__":

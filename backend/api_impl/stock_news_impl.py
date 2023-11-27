@@ -20,7 +20,6 @@ def get_stock_news(ticker):
             del article["description"]
             del article["content"]
             articles.append(article)
-            pprint(article)
     
     return articles
 

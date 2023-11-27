@@ -5,11 +5,10 @@ from models import stock_price_predictor as price_predictor
 NUM_PREDICTED_DAYS = 7
 
 def get_stock_prices(ticker):
-    data = yf.download(ticker, period="max")
     stock_prices = {}
     stock_prices['historical'] = get_historical_prices(ticker)
     stock_prices['predicted'] = get_predicted_prices(ticker)
-    print(stock_prices)
+    
     return stock_prices
     
 def get_historical_prices(ticker):
