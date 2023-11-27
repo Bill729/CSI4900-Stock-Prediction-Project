@@ -1,11 +1,15 @@
 import yfinance as yf
-import time
+
+from models import stock_price_predictor as price_predictor
+
+NUM_PREDICTED_DAYS = 7
 
 def get_stock_prices(ticker):
     data = yf.download(ticker, period="max")
     stock_prices = {}
     stock_prices['historical'] = get_historical_prices(ticker)
-    stock_prices['predicted'] = get_predicted_prices(ticker)    
+    stock_prices['predicted'] = get_predicted_prices(ticker)
+    print(stock_prices)
     return stock_prices
     
 def get_historical_prices(ticker):
@@ -15,11 +19,19 @@ def get_historical_prices(ticker):
     return formatted_prices
     
 def get_predicted_prices(ticker):
-    # TODO: Utilize model
-    epoch = str(int(time.time()))
-    predictions = {'AAPL': 130.96765194318883, 'MSFT': 235.1904937933153, 'GOOGL': 88.80080867493501, 'AMZN': 86.24289496189886, 'META': 108.36334946044701, 'BRK-B': 303.47671262653034, 'V': 207.2184004897953, 'JNJ': 152.94026889224082, 'WMT': 139.61731202224806, 'PG': 138.85857541690805}
-    predicted_prices = {epoch:predictions[ticker]}
-    return predicted_prices
+    data = yf.download([ticker], period="1y")['Close']
+    stock_indicators = price_predictor.calculate_indicators(data, [ticker])
+    predicted_prices = price_predictor.predict_for_n_days(stock_indicators, [ticker], NUM_PREDICTED_DAYS)[ticker]
+    
+    latest_date = data.index.max()
+    latest_epoch = int(latest_date.timestamp())
+    
+    output = {}
+    for i in range(len(predicted_prices)):
+        latest_epoch += 86400
+        output[latest_epoch] = predicted_prices[i]
+    
+    return output
 
 # Used for standalone testing, 
 if __name__ == "__main__":

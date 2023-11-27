@@ -2,6 +2,12 @@
 
 ## Dependencies
 
+Supported Python version:
+
+```
+Python 3.8.10
+```
+
 Before doing any development, using a virtual environment is highly recommended. 
 Create a virtual environment:
 
