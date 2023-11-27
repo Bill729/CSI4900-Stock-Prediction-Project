@@ -4,6 +4,10 @@
       <div class="loader"></div>
     </div>
     <!-- <div v-else> -->
+    <div v-if="this.$store.getters.getSelectedTickerData().name">
+      <h1>{{ this.$store.getters.getSelectedTickerData().info.company_name }}</h1>
+      <h3>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }} {{ this.$store.getters.getSelectedTickerData().info.currency }}</h3>
+    </div>
     <div class="chart-container" v-if="selectedStock">
       <div class="chart-controls">
         <button @click="updateTimeFrame('1W')">1W</button>
@@ -16,11 +20,11 @@
         <canvas id="myChart"></canvas>
       </div>
     </div>
-    <!-- {{ this.$store.getters.getSelectedTickerData() }}
-    {{ Object.keys(this.$store.getters.getSelectedTickerData().info).length }} -->
+    <!-- {{ this.$store.getters.getSelectedTickerData() }} -->
+    <!-- {{ Object.keys(this.$store.getters.getSelectedTickerData().info) }} -->
     <div style="min-width: auto; min-height: auto; display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">
       <!-- v-if="($store.getters.getSelectedTickerData().info)[key] != 'N/A'" -->
-      <card style="width: auto;" v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
+      <card style="width: auto;" v-if="!['currency', 'currentPrice', 'company_name'].includes(key)" v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
         <h5 class="card-category">{{ key }}</h5>
         <h3 class="card-title">
           <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->

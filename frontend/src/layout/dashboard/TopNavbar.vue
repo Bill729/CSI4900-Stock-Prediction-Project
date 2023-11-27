@@ -25,10 +25,15 @@
         <span class="navbar-toggler-bar navbar-kebab"></span>
         <span class="navbar-toggler-bar navbar-kebab"></span>
       </button>
-
       <collapse-transition>
         <div class="collapse navbar-collapse show" v-show="showMenu">
           <ul class="navbar-nav" :class="$rtl.isRTL ? 'mr-auto' : 'ml-auto'">
+            <router-link to="/dashboard" class="button">
+              <span class="text">Home</span>
+            </router-link>
+            <router-link to="/news" class="button">
+              <span class="text">News</span>
+            </router-link>
             <div class="search-bar input-group" @click="searchModalVisible = true">
               <!-- <input type="text" class="form-control" placeholder="Search...">
               <div class="input-group-addon"><i class="tim-icons icon-zoom-split"></i></div> -->
@@ -133,8 +138,6 @@
         showMenu: false,
         searchModalVisible: false,
         searchQuery: '',
-        hasTickers: false,
-        items: [1,2,3],
         tickers: []
       };
     },
@@ -150,7 +153,6 @@
         axios.get(uri)
         .then((res) => {
           console.log(res);
-          this.hasTickers = true;
           this.tickers = res.data;
           return res.data;
         })
