@@ -32,5 +32,9 @@ new Vue({
   router,
   store,
   i18n,
-  render: h => h(App)
+  render: h => h(App),
+  created() {
+    this.$store.dispatch('changeSelectedTicker', { name: 'AAPL' });
+    this.$store.dispatch('changeSelectedStockSymbol', 'AAPL');
+  },
 }).$mount("#app");
