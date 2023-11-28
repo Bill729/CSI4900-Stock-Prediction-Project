@@ -47,4 +47,13 @@ export default {
 </script>
 
 <style>
+img{
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+.img-section{
+  width: 500px;
+  height: 500px;
+}
 </style>

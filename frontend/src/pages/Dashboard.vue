@@ -4,9 +4,11 @@
       <div class="loader"></div>
     </div>
     <!-- <div v-else> -->
-    <div v-if="this.$store.getters.getSelectedTickerData().name">
-      <h1>{{ this.$store.getters.getSelectedTickerData().info.company_name }}</h1>
-      <h3>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }} {{ this.$store.getters.getSelectedTickerData().info.currency }}</h3>
+    <div id="basic-info" v-if="this.$store.getters.getSelectedTickerData().name">
+      <h1>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }}</h1>
+      <h2>{{ this.$store.getters.getSelectedTickerData().info.company_name }} 
+        <h4 id="currency">({{ this.$store.getters.getSelectedTickerData().info.currency }})</h4>
+      </h2>
     </div>
     <div class="chart-container" v-if="selectedStock">
       <div class="chart-controls">
@@ -24,9 +26,13 @@
     <!-- {{ Object.keys(this.$store.getters.getSelectedTickerData().info) }} -->
     <div style="min-width: auto; min-height: auto; display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">
       <!-- v-if="($store.getters.getSelectedTickerData().info)[key] != 'N/A'" -->
-      <card style="width: auto;" v-if="!['currency', 'currentPrice', 'company_name'].includes(key)" v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
-        <h5 class="card-category">{{ key }}</h5>
-        <h3 class="card-title">
+      <card style="width: auto;" v-if="checkDesiredKey(key)" v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
+        <h5>{{ key }}</h5>
+        <h3 v-if="typeof(($store.getters.getSelectedTickerData().info)[key]) === 'number' && formatDecimalNumber($store.getters.getSelectedTickerData().info[key]) != false">
+          <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->
+          {{  formatDecimalNumber($store.getters.getSelectedTickerData().info[key]) }}
+        </h3>
+        <h3 v-else>
           <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->
           {{ ($store.getters.getSelectedTickerData().info)[key] }}
         </h3>
@@ -87,6 +93,18 @@ export default {
   //   }
   // },
   methods: {
+    checkDesiredKey(key){
+      return !['currency', 'currentPrice', 'company_name'].includes(key)
+    },
+    formatDecimalNumber(value){
+      let splitDecimalValue = value.toString().split('.');
+      // console.log(splitDecimalValue)
+      if(splitDecimalValue.length == 1) return false;
+
+      let lenOfNonDecimal = splitDecimalValue[0].toString().length
+      // console.log(value.toPrecision(lenOfNonDecimal + 2))
+      return value.toPrecision(lenOfNonDecimal + 2);
+    },
     async fetchAndDisplayStockData(stockSymbol) {
     try {
       const response = await axios.get(`http://127.0.0.1:5000/stock/${stockSymbol}/prices`);
@@ -194,6 +212,19 @@ export default {
 </script>
 
 <style scoped>
+#currency{
+  display: inline;
+}
+#basic-info{
+  h1{
+    font-size: 5rem;
+  }
+  & > * {
+    padding: 0;
+    margin: 0;
+    margin: 0.5rem 0;
+  }
+}
 
 .overlay {
   position: fixed;
