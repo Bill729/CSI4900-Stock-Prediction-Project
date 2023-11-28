@@ -33,8 +33,8 @@ new Vue({
   store,
   i18n,
   render: h => h(App),
-  created() {
-    this.$store.dispatch('changeSelectedTicker', { name: 'AAPL' });
-    this.$store.dispatch('changeSelectedStockSymbol', 'AAPL');
+  async created() {
+    await this.$store.dispatch('changeSelectedTicker', { name: 'AAPL' });
+    await this.$store.dispatch('changeSelectedStockSymbol', 'AAPL');
   },
 }).$mount("#app");
