@@ -12,11 +12,12 @@
     </div>
     <div class="chart-container" v-if="selectedStock">
       <div class="chart-controls">
-        <button @click="updateTimeFrame('1W')">1W</button>
-        <button @click="updateTimeFrame('1M')">1M</button>
-        <button @click="updateTimeFrame('3M')">3M</button>
-        <button @click="updateTimeFrame('1Y')">1Y</button>
-        <button @click="updateTimeFrame('ALL')">ALL</button>
+        <button :class="['chart-control-button', '1W' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1W')">1W</button>
+        <button :class="['chart-control-button', '1M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1M')">1M</button>
+        <button :class="['chart-control-button', '3M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('3M')">3M</button>
+        <button :class="['chart-control-button', '1Y' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1Y')">1Y</button>
+        <button :class="['chart-control-button', 'ALL' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('ALL')">ALL</button>
+        <button :class="['chart-control-button', 'chart-control-button-7d-pred', '7D_PRED' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('7D_PRED')">7D Predicted</button>
       </div>
       <div class="lineChart">
         <canvas id="myChart"></canvas>
@@ -52,6 +53,7 @@ import Chart from 'chart.js';
 import axios from 'axios';
 import moment from 'moment';
 
+
 export default {
   name: 'Dashboard',
   data(){
@@ -60,6 +62,7 @@ export default {
       numberOfColumns: 3,
       allData: null,
       chart: null,
+      activeTimeFrame: 'ALL', // Set a default active time frame if needed
     }
   },
   mounted() {
@@ -76,10 +79,11 @@ export default {
     selectedStock(newSymbol, oldSymbol) {
       if (newSymbol && newSymbol !== oldSymbol) {
         this.loading = true; // Start loading as soon as a new stock is selected
+        this.activeTimeFrame = 'ALL'; // Reset the active time frame
         this.fetchAndDisplayStockData(newSymbol);
       }
     },
-    allData(newData, oldData) {
+    allData(newData, oldData) {   
       if (newData !== oldData) {
         this.createChart(newData, 'ALL');
       }
@@ -93,6 +97,9 @@ export default {
   //   }
   // },
   methods: {
+    selectStock(stockSymbol) {
+      this.$store.dispatch('fetchStockData', stockSymbol);
+    },
     checkDesiredKey(key){
       return !['currency', 'currentPrice', 'company_name'].includes(key)
     },
@@ -106,108 +113,179 @@ export default {
       return value.toPrecision(lenOfNonDecimal + 2);
     },
     async fetchAndDisplayStockData(stockSymbol) {
-    try {
-      const response = await axios.get(`http://127.0.0.1:5000/stock/${stockSymbol}/prices`);
-     // console.log('Fetched data:', response.data); // Log the fetched data
-      this.allData = response.data;
-      this.createChart(this.allData, 'ALL');
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }finally {
-        this.loading = false; // Stop loading
+      this.loading = true;
+      const cachedData = this.$store.getters.getStockData(stockSymbol);
+      if (cachedData) {
+        this.allData = cachedData;
+        this.createChart(this.allData, this.activeTimeFrame); // Use the active time frame instead of 'ALL'
+      } else {
+        // If there's no cache, fetch the data
+        await this.$store.dispatch('fetchStockData', stockSymbol);
+        // After dispatching, the cache will be updated, so you can retrieve it
+        this.allData = this.$store.getters.getStockData(stockSymbol);
+        // Make sure to handle the case when the API call fails and allData remains undefined
+        if (this.allData) {
+          this.createChart(this.allData, this.activeTimeFrame);
+        }
       }
+      this.loading = false;
     },
     createChart(stockData, timeFrame) {
-      const filteredData = this.filterData(stockData, timeFrame);
-      const ctx = document.getElementById('myChart').getContext('2d');
-      const labels = Object.keys(filteredData.historical).map(timestamp =>
-        moment.unix(timestamp).format('MMM YYYY')
-      );
-      const data = Object.values(filteredData.historical);
+      // Log the data to debug if the timestamps are correct
+    console.log('Creating chart with data:', stockData);
+    const ctx = document.getElementById('myChart').getContext('2d');
 
-      if (this.chart) {
-        this.chart.destroy();
-      }
-      // console.log("Predicted",filteredData.predicted);
-      // console.log("Historical", filteredData.historical);
-      // console.log(labels);
-      // console.log(data);
-      this.chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: this.selectedStock,
-            data,
+    if (this.chart) {
+      this.chart.destroy();
+    }
+
+    const filteredData = this.filterData(stockData, timeFrame);
+
+    // Generate labels and data for historical data
+    const historicalLabels = Object.keys(filteredData.historical).map(timestamp =>
+      moment.unix(timestamp).format('MMM D, YYYY')
+    );
+    const historicalDataPoints = Object.values(filteredData.historical);
+
+    // Generate labels and data for predicted data
+    const predictedLabels = Object.keys(filteredData.predicted).map(timestamp =>
+      moment.unix(timestamp).format('MMM D, YYYY')
+    );
+    const predictedDataPoints = Object.values(filteredData.predicted);
+    // let spacedPredictedData = [];
+    // let spacedPredictedLabels = [];
+    // if (timeFrame === 'ALL' && predictedDataPoints.length > 7) {
+    //   // For example, take one data point per interval (e.g., every 3 days)
+    //   const interval = Math.ceil(predictedDataPoints.length / 7);
+    //   for (let i = 0; i < predictedDataPoints.length; i += interval) {
+    //     spacedPredictedData.push(predictedDataPoints[i]);
+    //     spacedPredictedLabels.push(predictedLabels[i]);
+    //   }
+    // } else {
+    //   spacedPredictedData = predictedDataPoints;
+    //   spacedPredictedLabels = predictedLabels;
+    // }
+    // Create the chart with the separate datasets
+    this.chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [
+          {
+            label: `${this.selectedStock} - Historical`,
+            data: historicalDataPoints.map((value, index) => ({ x: historicalLabels[index], y: value })),
             fill: false,
             borderColor: '#007bff',
             tension: 0.1
+          },
+          {
+            label: `${this.selectedStock} - Predicted`,
+            data: predictedDataPoints.map((value, index) => ({ x: predictedLabels[index], y: value })),
+            fill: false,
+            borderColor: '#ff4500',
+            pointBackgroundColor: '#ff4500', // Set the point background color to match the border color
+            borderWidth: 2,
+            borderDash: [5, 5],
+            tension: 0.1
+          }
+        ]
+      },
+      options: {
+        scales: {
+          xAxes: [{
+            type: 'time',
+            time: {
+              parser: 'MMM D, YYYY',
+              unit: 'day',
+              // Ensure the year is shown on the x-axis
+              displayFormats: {
+                day: 'MMM D, YYYY'
+              },
+              tooltipFormat: 'll'
+            },
+            distribution: 'linear'
           }],
+          yAxes: [{
+            beginAtZero: false
+          }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: false,
-            },
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true
           },
-          plugins: {
-            legend: {
-              display: true,
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-            },
-          },
-        },
-      });
-    },
-    filterData(stockData, timeFrame) {
-      if (!stockData || !stockData.historical) {
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        }
+      }
+    });
+  },
+  filterData(stockData, timeFrame) {
+    if (!stockData || !stockData.historical) {
       console.error('Invalid or missing stock data');
       return {};
     }
-        if (timeFrame === 'ALL') {
-          return stockData; 
-        }
-  
-        const endDate = moment().unix();
-        let startDate;
-  
-        switch (timeFrame) {
-          case '1W':
-            startDate = moment().subtract(1, 'weeks').unix();
-            break;
-          case '1M':
-            startDate = moment().subtract(1, 'months').unix();
-            break;
-          case '3M':
-            startDate = moment().subtract(3, 'months').unix();
-            break;
-          case '1Y':
-            startDate = moment().subtract(1, 'years').unix();
-            break;
-          default:
-            startDate = moment().subtract(1, 'years').unix();
-        }
-  
+    const endDate = moment().unix();
+    let startDate;
+
+    switch (timeFrame) {
+      case '1W':
+        startDate = moment().subtract(1, 'weeks').unix();
+        break;
+      case '1M':
+        startDate = moment().subtract(1, 'months').unix();
+        break;
+      case '3M':
+        startDate = moment().subtract(3, 'months').unix();
+        break;
+      case '1Y':
+        startDate = moment().subtract(1, 'years').unix();
+        break;
+        case '7D_PRED':
+        // Ensure that the filter captures the entire range of the last 7 days
+        startDate = moment().subtract(7, 'days').unix();
         return {
-          historical: Object.fromEntries(
-            Object.entries(stockData.historical).filter(
-              ([timestamp]) => timestamp >= startDate && timestamp <= endDate
+          historical: {},
+          predicted: Object.fromEntries(
+            Object.entries(stockData.predicted).filter(
+              ([timestamp]) => timestamp >= startDate
             )
-          ),
+          )
         };
-    },
-    updateTimeFrame(timeFrame) {
-      this.createChart(this.allData, timeFrame);
-    },
-    async getTicker() {
-      this.$store.getters.getSelectedTickerData();
-    },
-  }, 
+        case 'ALL':
+        // Combine historical and predicted data, ensuring they align correctly
+        return {
+          historical: stockData.historical,
+          predicted: Object.fromEntries(
+            Object.entries(stockData.predicted).filter(
+              ([timestamp]) => timestamp >= Object.keys(stockData.historical).slice(-1)[0]
+            )
+          )
+        };
+      default:
+        startDate = moment().subtract(1, 'years').unix();
+    }
+
+    // Filtering logic for historical data for other cases
+    return {
+      historical: Object.fromEntries(
+        Object.entries(stockData.historical).filter(
+          ([timestamp]) => timestamp >= startDate && timestamp <= endDate
+        )
+      ),
+      predicted: stockData.predicted
+    };
+  },
+  updateTimeFrame(timeFrame) {
+    this.activeTimeFrame = timeFrame; // Set the active time frame
+    this.createChart(this.allData, timeFrame);
+  },
+  async getTicker() {
+    this.$store.getters.getSelectedTickerData();
+  },
+}, 
 };
 </script>
 
@@ -269,7 +347,7 @@ export default {
 .chart-controls {
   text-align: left; 
   margin-bottom: 10px; 
-  margin-left: 170px;
+  margin-left: 140px;
 }
 
 .chart-controls button {
@@ -282,7 +360,13 @@ export default {
   cursor: pointer;
 }
 
-.chart-controls button:hover {
-  background-color: #0056b3;
+.chart-control-button:hover,
+.chart-control-button.active { /* Add .active here */
+  background-color: #001eb3; /* This color will show on hover and when the button is active */
+}
+
+/* Specific style for the '7D Pred' button when it is active */
+.chart-control-button-7d-pred.active {
+  background-color: #ff4500; /* Same color as the border color for the '7D Pred' button */
 }
 </style>
