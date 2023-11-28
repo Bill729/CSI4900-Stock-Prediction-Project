@@ -10,7 +10,8 @@ export default new Vuex.Store({
       name: "",
       info: []
     },
-    selectedStockSymbol: '' 
+    selectedStockSymbol: '',
+    stockDataCache: {} // Cache for stock data
   },
   getters: {
     getSelectedTickerData: (state) => () => {
@@ -21,6 +22,9 @@ export default new Vuex.Store({
     },
     getSelectedStockSymbol: (state) => {
       return state.selectedStockSymbol; 
+    },
+    getStockData: (state) => (symbol) => {
+      return state.stockDataCache[symbol];
     }
   },
   mutations: {
@@ -30,9 +34,24 @@ export default new Vuex.Store({
     },
     setSelectedStockSymbol(state, symbol) { 
       state.selectedStockSymbol = symbol;
+    },
+    setStockDataCache(state, { symbol, data }) {
+      Vue.set(state.stockDataCache, symbol, data); // Ensures reactivity
     }
   },
   actions: {
+    async fetchStockData({ commit }, symbol) {
+        commit('setLoading', true); // Assuming you have a mutation to set loading state
+        try {
+          const response = await axios.get(`http://127.0.0.1:5000/stock/${symbol}/prices`);
+          commit('setStockDataCache', { symbol, data: response.data });
+          commit('setSelectedStockSymbol', symbol); // Update the selected stock symbol
+          commit('setLoading', false);
+        } catch (error) {
+          console.error('Error fetching stock data:', error);
+          commit('setLoading', false);
+        }
+    },
     async changeSelectedTicker(context, payload) {
       const uri = 'http://127.0.0.1:5000/stock/' + payload.name + '/info';
       const res = await axios.get(uri);
