@@ -96,7 +96,7 @@ def create_sequences(data, n_steps=20):
 
 
 # Function to train LSTM models for different stock tickers
-def train_LSTM_models(indicators_df, tickers, n_steps=20):
+def train_LSTM_models(indicators_df, tickers, save_dir, n_steps=20):
     # Callbacks for early stopping and learning rate reduction
     early_stopping = EarlyStopping(monitor='loss', patience=20)
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2, patience=5, min_lr=0.001)
@@ -127,7 +127,7 @@ def train_LSTM_models(indicators_df, tickers, n_steps=20):
         
         model.fit(X, Y, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_split=0.2, callbacks=[early_stopping, reduce_lr])
         
-        model_path = get_model_path(ticker)
+        model_path = get_model_path(ticker, save_dir)
         model.save(model_path)
         K.clear_session()
 
@@ -208,11 +208,15 @@ def predict_for_n_days(indicators_df, tickers, n_days, n_steps=20):
     
     return future_market_predictions
 
-def get_model_path(ticker):
-    model_path = f'\models\model_{ticker}'
-    current_dir_path = os.path.dirname(os.path.abspath(__file__))
-    absolute_path = current_dir_path + model_path
-    return absolute_path
+# def get_model_path(ticker):
+#     model_path = f'\models\model_{ticker}'
+#     current_dir_path = os.path.dirname(os.path.abspath(__file__))
+#     absolute_path = current_dir_path + model_path
+#     return absolute_path
+def get_model_path(ticker, save_dir):
+    model_path = os.path.join(save_dir, f'model_{ticker}')
+    return model_path
+
 
 # Used for standalone testing
 if __name__ == "__main__":
