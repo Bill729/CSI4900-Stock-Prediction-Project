@@ -1,8 +1,6 @@
 <template>
   <div>
-    <div v-if="loading" class="overlay">
-      <div class="loader"></div>
-    </div>
+    
     <!-- <div v-else> -->
     <div id="basic-info" v-if="this.$store.getters.getSelectedTickerData().name">
       <h1>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }}</h1>
@@ -21,6 +19,9 @@
       </div>
       <div class="lineChart">
         <canvas id="myChart"></canvas>
+        <div v-if="loading" class="overlay">
+          <div class="loader"></div>
+        </div>
       </div>
     </div>
     <!-- {{ this.$store.getters.getSelectedTickerData() }} -->
@@ -196,7 +197,6 @@ export default {
             time: {
               parser: 'MMM D, YYYY',
               unit: 'day',
-              // Ensure the year is shown on the x-axis
               displayFormats: {
                 day: 'MMM D, YYYY'
               },
@@ -305,14 +305,15 @@ export default {
 }
 
 .overlay {
-  position: fixed;
+  position: absolute; /* Positioned absolutely to the parent relative container */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 10; /* Ensure it's above other content */
 }
 
 .loader {
