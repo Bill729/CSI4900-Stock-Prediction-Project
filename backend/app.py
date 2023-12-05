@@ -1,4 +1,6 @@
-from flask import Flask, jsonify
+from datetime import date
+import shelve
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from api_impl import stock_info_impl, tickers_impl, stock_prices_impl, stock_news_impl, model_perf_impl
 
@@ -13,9 +15,8 @@ Returns a list of all tickers we are tracking (Feature 1)
 '''
 @app.route('/tickers', methods=['GET'])
 def get_stock_tickers():
-    stock_tickers = tickers_impl.get_stock_tickers()
-    response = jsonify(stock_tickers)
-    return response
+    api_impl = tickers_impl.get_stock_tickers
+    return get_data(request.path, api_impl)
 
 
 '''
@@ -23,9 +24,8 @@ Returns the model's performance information
 '''
 @app.route('/model/performance', methods=['GET'])
 def get_model_performance():
-    model_performance = model_perf_impl.get_model_performance()
-    response = jsonify(model_performance)
-    return response
+    api_impl = model_perf_impl.get_model_performance
+    return get_data(request.path, api_impl)
 
 """ 
 Returns all historical and predicted prices for a specific stock (Feature 2)
@@ -33,27 +33,39 @@ Return dict where key = date in epoch and value = price in USD
 """
 @app.route('/stock/<ticker>/prices', methods=['GET'])
 def get_stock_prices(ticker):
-    stock_prices = stock_prices_impl.get_stock_prices(ticker)
-    response = jsonify(stock_prices)
-    return response
+    api_impl = stock_prices_impl.get_stock_prices
+    return get_data(request.path, api_impl, ticker)
+    
 
 """ 
 Returns all relevant information for a specific stock (Feature 4)
 """
 @app.route('/stock/<ticker>/info', methods=['GET'])
 def get_stock_info(ticker):
-    stock_info = stock_info_impl.fetch_single_stock_data(ticker)
-    response = jsonify(stock_info)
-    return response
+    api_impl = stock_info_impl.fetch_single_stock_data
+    return get_data(request.path, api_impl, ticker)
 
 """ 
 Returns a list of recent news articles about a specific stock
 """
 @app.route('/stock/<ticker>/news', methods=['GET'])
 def get_stock_news(ticker):
-    stock_news = stock_news_impl.get_stock_news(ticker)
-    response = jsonify(stock_news)
-    return response
+    api_impl = stock_news_impl.get_stock_news
+    return get_data(request.path, api_impl, ticker)
+
+def get_data(request_path, api_impl, *args):
+    cache = shelve.open('cache/api_reponse')
+    cache_key = f'{request_path}|{str(date.today())}'
+
+    if cache_key in cache:
+        data = cache[cache_key]
+    else:
+        data = jsonify(api_impl(*args))
+        
+    cache[cache_key] = data
+    cache.close()
+
+    return data
 
 if __name__ == '__main__':
     app.run(debug=True)

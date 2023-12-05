@@ -1,6 +1,6 @@
 Flask>=2.2.2
 Flask-Cors==3.0.10
-yfinance==0.1.63
+yfinance==0.2.32
 pandas==1.3.3
 numpy>=1.22
 keras>=2.13

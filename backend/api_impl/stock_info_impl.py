@@ -1,9 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
-from api_impl import yfinance_impl
+import yfinance as yf
 
 # Function to fetch data for a single stock ticker.
 def fetch_single_stock_data(ticker):
-    yfinance_output = yfinance_impl.YFinance(ticker)
+    yfinance_output = yf.Ticker(ticker)
     
     metrics = [
         "marketCap", "sector", "industry",
