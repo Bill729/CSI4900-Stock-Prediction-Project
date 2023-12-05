@@ -1,4 +1,5 @@
 from datetime import date
+import os
 import shelve
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -54,7 +55,10 @@ def get_stock_news(ticker):
     return get_data(request.path, api_impl, ticker)
 
 def get_data(request_path, api_impl, *args):
-    cache = shelve.open('cache/api_reponse')
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    shelve_path = os.path.join(script_dir, 'cache', 'api_response')
+    cache = shelve.open(shelve_path)
+    
     cache_key = f'{request_path}|{str(date.today())}'
 
     if cache_key in cache:
