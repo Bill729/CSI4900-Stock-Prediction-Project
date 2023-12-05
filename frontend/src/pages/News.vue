@@ -1,7 +1,6 @@
 <template>
   <div style="display: flex; flex-direction: column;">
     <div class="news-item" v-for="newsItem in news" :key="newsItem.url">
-      <h1 class="card-title">Viewing news about {{ this.$store.getters.getSelectedTickerData().info.company_name }} ({{ this.$store.getters.getSelectedTickerData().name }})</h1>
       <div class="img-section">
         <a :href="newsItem.url">
           <img :src="newsItem.urlToImage" :alt="'Photo of article titled: ' + newsItem.title" />
