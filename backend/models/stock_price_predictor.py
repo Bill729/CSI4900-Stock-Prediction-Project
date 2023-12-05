@@ -213,6 +213,10 @@ def get_model_path(ticker):
     current_dir_path = os.path.dirname(os.path.abspath(__file__))
     absolute_path = current_dir_path + model_path
     return absolute_path
+# def get_model_path(ticker, save_dir):
+#     model_path = os.path.join(save_dir, f'model_{ticker}')
+#     return model_path
+
 
 # Used for standalone testing
 if __name__ == "__main__":
