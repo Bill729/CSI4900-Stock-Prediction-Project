@@ -3,16 +3,6 @@
        :class="{'bg-white': showMenu, 'navbar-transparent': !showMenu}">
     <div class="container-fluid">
       <div class="navbar-wrapper">
-        <div class="navbar-toggle d-inline" :class="{toggled: $sidebar.showSidebar}">
-          <button type="button"
-                  class="navbar-toggler"
-                  aria-label="Navbar toggle button"
-                  @click="toggleSidebar">
-            <span class="navbar-toggler-bar bar1"></span>
-            <span class="navbar-toggler-bar bar2"></span>
-            <span class="navbar-toggler-bar bar3"></span>
-          </button>
-        </div>
         <a class="navbar-brand" href="#pablo">{{routeName}}</a>
       </div>
       <button class="navbar-toggler" type="button"
@@ -26,19 +16,27 @@
         <span class="navbar-toggler-bar navbar-kebab"></span>
       </button>
       <collapse-transition>
-        <div class="collapse navbar-collapse show" v-show="showMenu">
+        <div id="menu" class="collapse navbar-collapse show" v-show="showMenu">
           <ul class="navbar-nav" :class="$rtl.isRTL ? 'mr-auto' : 'ml-auto'">
-            <router-link to="/dashboard" class="button">
-              <span class="text">Home</span>
-            </router-link>
-            <router-link to="/news" class="button">
-              <span class="text">News</span>
-            </router-link>
-            <div class="search-bar input-group" @click="searchModalVisible = true">
+            <div class="search-bar input-group">
+              <button class="btn btn-link" id="search-button">
+                <router-link to="/dashboard" class="button">
+                  <span class="text"><i class="tim-icons icon-chart-pie-36"></i>Home</span>
+                </router-link>
+              </button>
+            </div>
+            <div class="search-bar input-group">
+              <button class="btn btn-link" id="search-button">
+                <router-link to="/news" class="button">
+                  <span class="text"><i class="tim-icons icon-single-copy-04"></i>News</span>
+                </router-link>
+              </button>
+            </div>
+            <div class="search-bar input-group">
               <!-- <input type="text" class="form-control" placeholder="Search...">
               <div class="input-group-addon"><i class="tim-icons icon-zoom-split"></i></div> -->
               <button class="btn btn-link" id="search-button" data-toggle="modal" data-target="#searchModal" @click="focusOnSearchInput">
-                <i class="tim-icons icon-zoom-split"></i>
+                <span class="text"><i class="tim-icons icon-zoom-split"></i>Search</span>
               </button>
               <!-- You can choose types of search input -->
             </div>
@@ -56,57 +54,6 @@
                 </li>
               </ul>
             </modal>
-            <base-dropdown tag="li"
-                           :menu-on-right="!$rtl.isRTL"
-                           title-tag="a" class="nav-item">
-              <a slot="title" href="#" class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="true">
-                <div class="notification d-none d-lg-block d-xl-block"></div>
-                <i class="tim-icons icon-sound-wave"></i>
-                <p class="d-lg-none">
-                  New Notifications
-                </p>
-              </a>
-              <li class="nav-link">
-                <a href="#" class="nav-item dropdown-item">Mike John responded to your email</a>
-              </li>
-              <li class="nav-link">
-                <a href="#" class="nav-item dropdown-item">You have 5 more tasks</a>
-              </li>
-              <li class="nav-link">
-                <a href="#" class="nav-item dropdown-item">Your friend Michael is in town</a>
-              </li>
-              <li class="nav-link">
-                <a href="#" class="nav-item dropdown-item">Another notification</a>
-              </li>
-              <li class="nav-link">
-                <a href="#" class="nav-item dropdown-item">Another one</a>
-              </li>
-            </base-dropdown>
-            <base-dropdown tag="li"
-                           :menu-on-right="!$rtl.isRTL"
-                           title-tag="a"
-                           class="nav-item"
-                           menu-classes="dropdown-navbar">
-              <a slot="title" href="#" class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="true">
-                <div class="photo">
-                  <img src="img/anime3.png">
-                </div>
-                <b class="caret d-none d-lg-block d-xl-block"></b>
-                <p class="d-lg-none">
-                  Log out
-                </p>
-              </a>
-              <li class="nav-link">
-                <a href="#" class="nav-item dropdown-item">Profile</a>
-              </li>
-              <li class="nav-link">
-                <a href="#" class="nav-item dropdown-item">Settings</a>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li class="nav-link">
-                <a href="#" class="nav-item dropdown-item">Log out</a>
-              </li>
-            </base-dropdown>
           </ul>
         </div>
       </collapse-transition>
@@ -201,4 +148,12 @@
   };
 </script>
 <style>
+.text{
+  color: white;
+  font-weight: 600;
+
+  & i{
+    margin-right: 0.25rem;
+  }
+}
 </style>

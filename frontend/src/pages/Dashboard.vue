@@ -1,12 +1,9 @@
 <template>
   <div>
-    
     <!-- <div v-else> -->
     <div id="basic-info" v-if="this.$store.getters.getSelectedTickerData().name">
       <h1>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }}</h1>
-      <h2>{{ this.$store.getters.getSelectedTickerData().info.company_name }} 
-        <h4 id="currency">({{ this.$store.getters.getSelectedTickerData().info.currency }})</h4>
-      </h2>
+      <h2>{{ this.$store.getters.getSelectedTickerData().info.company_name }}</h2>
     </div>
     <div class="chart-container" v-if="selectedStock">
       <div class="chart-controls">
@@ -26,13 +23,13 @@
     </div>
     <!-- {{ this.$store.getters.getSelectedTickerData() }} -->
     <!-- {{ Object.keys(this.$store.getters.getSelectedTickerData().info) }} -->
-    <div style="min-width: auto; min-height: auto; display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">
+    <div id="cards" style="min-width: auto; min-height: auto; display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));">
       <!-- v-if="($store.getters.getSelectedTickerData().info)[key] != 'N/A'" -->
       <card style="width: auto;" v-if="checkDesiredKey(key)" v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
         <h5>{{ key }}</h5>
         <h3 v-if="typeof(($store.getters.getSelectedTickerData().info)[key]) === 'number' && formatDecimalNumber($store.getters.getSelectedTickerData().info[key]) != false">
           <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->
-          {{  formatDecimalNumber($store.getters.getSelectedTickerData().info[key]) }}
+          {{ formatDecimalNumber($store.getters.getSelectedTickerData().info[key]) }}
         </h3>
         <h3 v-else>
           <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->
@@ -51,9 +48,7 @@
 
 <script>
 import Chart from 'chart.js';
-import axios from 'axios';
 import moment from 'moment';
-
 
 export default {
   name: 'Dashboard',
@@ -90,19 +85,12 @@ export default {
       }
     }
   },
-  // computed: {
-  //   gridStyle() {
-  //     return {
-  //       gridTemplateColumns: `repeat(${this.numberOfColumns}, minmax(100px, 1fr))`
-  //     }
-  //   }
-  // },
   methods: {
     selectStock(stockSymbol) {
       this.$store.dispatch('fetchStockData', stockSymbol);
     },
     checkDesiredKey(key){
-      return !['currency', 'currentPrice', 'company_name'].includes(key)
+      return !['currentPrice', 'company_name'].includes(key)
     },
     formatDecimalNumber(value){
       let splitDecimalValue = value.toString().split('.');
@@ -290,9 +278,13 @@ export default {
 </script>
 
 <style scoped>
-#currency{
-  display: inline;
+#cards h3{
+  font-size: 2rem;
 }
+#cards h5{
+  font-size: 1rem;
+}
+
 #basic-info{
   h1{
     font-size: 5rem;
@@ -333,6 +325,7 @@ export default {
 .chart-container {
   text-align: left;
   padding-left: 20px;
+  margin: 2rem 0;
   margin-left: 20px;
 }
 

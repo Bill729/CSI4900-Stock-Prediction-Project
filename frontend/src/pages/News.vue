@@ -68,9 +68,6 @@ h4.card-title{
 button{
   margin-top: 0.5rem;
 }
-button:hover{
-
-}
 .img-section{
   width: 100%;
 }
@@ -78,12 +75,11 @@ img{
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: 0.75rem;
 }
 .news-item{
-  margin: 4rem auto;
+  margin: 5rem auto;
   max-width: 850px;
-  min-width: 850px;
   margin-top: 0;
 }
 </style>
