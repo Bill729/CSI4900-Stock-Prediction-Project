@@ -65,8 +65,8 @@ def get_data(request_path, api_impl, *args):
         data = cache[cache_key]
     else:
         data = jsonify(api_impl(*args))
+        cache[cache_key] = data
         
-    cache[cache_key] = data
     cache.close()
 
     return data
