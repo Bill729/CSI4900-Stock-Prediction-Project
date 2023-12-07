@@ -1,15 +1,16 @@
 from datetime import date
 import os
 import shelve
+import threading
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from api_impl import stock_info_impl, tickers_impl, stock_prices_impl, stock_news_impl, model_perf_impl
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-
 CORS(app, resources={r'/*': {'origins': '*'}})
 
+shelve_lock = threading.Lock()
 
 '''
 Returns a list of all tickers we are tracking (Feature 1)
@@ -58,17 +59,19 @@ def get_stock_news(ticker):
 def get_data(request_path, api_impl, *args):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     shelve_path = os.path.join(script_dir, 'cache', 'api_response')
-    cache = shelve.open(shelve_path)
     
     cache_key = f'{request_path}|{str(date.today())}'
-
-    if cache_key in cache:
-        data = cache[cache_key]
-    else:
+    with shelve_lock:
+        with shelve.open(shelve_path) as cache:
+            data_in_cache = cache_key in cache
+            if data_in_cache:
+                data = cache[cache_key]
+    
+    if not data_in_cache:
         data = jsonify(api_impl(*args))
-        cache[cache_key] = data
-        
-    cache.close()
+        with shelve_lock:
+            with shelve.open(shelve_path) as cache:
+                cache[cache_key] = data
 
     return data
 
