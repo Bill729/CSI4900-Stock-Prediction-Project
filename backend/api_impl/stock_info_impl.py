@@ -13,24 +13,28 @@ def fetch_single_stock_data(ticker):
     ]
     
     stock_info = {metric: yfinance_output.info.get(metric, "N/A") for metric in metrics}
-    stock_info["company_name"] = get_stock_name(ticker)
+    stock_info = {get_display_name(key): value for key, value in stock_info.items()}
+    stock_info["Company Name"] = get_stock_name(ticker)
     
-    # Create a dictionary to hold our chosen metrics for this stock.
-    # If a metric is not available, we use "N/A" as a placeholder.
     return stock_info
 
-# Define a function to fetch data for all listed stock tickers.
-# TODO: Might be deleted in the future
-def fetch_stock_data(tickers):
-    with ThreadPoolExecutor() as executor:
-        results = list(executor.map(fetch_single_stock_data, tickers))
+def get_display_name(property_name):
+    display_names = {
+        "marketCap": "Market Cap", 
+        "sector": "Sector", 
+        "industry": "Industry",
+        "dividendYield": "Dividend Yield", 
+        "trailingPE": "Trailing P/E", 
+        "earningsQuarterlyGrowth": "Earnings Quarterly Growth",
+        "currentPrice": "Current Price", 
+        "regularMarketVolume": "Regular Market Volume", 
+        "beta": "Beta",
+        "fiftyTwoWeekLow": "Fifty-Two Week Low", 
+        "fiftyTwoWeekHigh": "Fifty-Two Week High", 
+        "currency": "Currency"
+    }
     
-    stock_data_dict = {}
-    
-    for result in results:
-        stock_data_dict.update(result)
-
-    return stock_data_dict
+    return display_names[property_name]
 
 def get_stock_name(ticker):
     ticker_to_name = {

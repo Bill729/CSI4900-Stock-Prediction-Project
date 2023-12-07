@@ -22,6 +22,7 @@ def get_stock_tickers():
 
 '''
 Returns the model's performance information
+Returns a map of maps that contains the MSE, RMSE and MAE of the prediction of a specific date
 '''
 @app.route('/model/performance', methods=['GET'])
 def get_model_performance():
