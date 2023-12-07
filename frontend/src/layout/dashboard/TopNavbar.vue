@@ -18,25 +18,28 @@
       <collapse-transition>
         <div id="menu" class="collapse navbar-collapse show" v-show="showMenu">
           <ul class="navbar-nav" :class="$rtl.isRTL ? 'mr-auto' : 'ml-auto'">
-            <div class="search-bar input-group">
+            <div class="input-group">
               <button class="btn btn-link" id="search-button">
-                <router-link to="/dashboard" class="button">
-                  <span class="text"><i class="tim-icons icon-chart-pie-36"></i>Home</span>
-                </router-link>
+                <a href="#/dashboard" class="router-link">
+                  <i class="option-icon tim-icons icon-chart-pie-36"></i>
+                  <span class="option-text">Dashboard</span>
+                </a>
               </button>
             </div>
-            <div class="search-bar input-group">
+            <div class="input-group">
               <button class="btn btn-link" id="search-button">
-                <router-link to="/news" class="button">
-                  <span class="text"><i class="tim-icons icon-single-copy-04"></i>News</span>
-                </router-link>
+                <a href="#/news" class="router-link">
+                  <i class="option-icon tim-icons icon-single-copy-04"></i>
+                  <span class="option-text">News</span>
+                </a>
               </button>
             </div>
-            <div class="search-bar input-group">
+            <div class="input-group">
               <!-- <input type="text" class="form-control" placeholder="Search...">
               <div class="input-group-addon"><i class="tim-icons icon-zoom-split"></i></div> -->
               <button class="btn btn-link" id="search-button" data-toggle="modal" data-target="#searchModal" @click="focusOnSearchInput">
-                <span class="text"><i class="tim-icons icon-zoom-split"></i>Search</span>
+                <i class="option-icon tim-icons icon-zoom-split"></i>
+                <span class="option-text">Search</span>
               </button>
               <!-- You can choose types of search input -->
             </div>
@@ -148,12 +151,29 @@
   };
 </script>
 <style>
-.text{
+.router-link, .btn{
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center;
+  text-decoration: none;
   color: white;
-  font-weight: 600;
-
-  & i{
-    margin-right: 0.25rem;
-  }
+}
+#search-button{
+  color: white !important;
+}
+.router-link:hover, #search-button:hover{
+  color: lightgray !important;
+}
+.router-link:focus{
+  color: none;
+}
+.option-icon{
+  margin-right: 0.35rem;
+}
+.btn-link{
+  font-weight: 100 !important;
+}
+.input-group{
+  margin: 0 !important;
 }
 </style>
