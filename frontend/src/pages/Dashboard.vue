@@ -1,24 +1,45 @@
 <template>
   <div>
-    <!-- <div v-else> -->
-    <div id="basic-info" v-if="this.$store.getters.getSelectedTickerData().name">
-      <h1>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }}</h1>
-      <h2>{{ this.$store.getters.getSelectedTickerData().info.company_name }}</h2>
-    </div>
-    <div class="chart-container" v-if="selectedStock">
-      <div class="chart-controls">
-        <button :class="['chart-control-button', '1W' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1W')">1W</button>
-        <button :class="['chart-control-button', '1M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1M')">1M</button>
-        <button :class="['chart-control-button', '3M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('3M')">3M</button>
-        <button :class="['chart-control-button', '1Y' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1Y')">1Y</button>
-        <button :class="['chart-control-button', 'ALL' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('ALL')">ALL</button>
-        <button :class="['chart-control-button', 'chart-control-button-7d-pred', '7D_PRED' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('7D_PRED')">7D Predicted</button>
-      </div>
-      <div class="lineChart">
-        <canvas id="myChart"></canvas>
-        <div v-if="loading" class="overlay">
-          <div class="loader"></div>
+    <div style="display: grid; grid-template-columns: 1fr;">
+      <div class="chart-container" v-if="selectedStock">
+        <div id="basic-info" v-if="this.$store.getters.getSelectedTickerData().name">
+          <h1>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }}</h1>
+          <h2>{{ this.$store.getters.getSelectedTickerData().info.company_name }}</h2>
         </div>
+        <div class="chart-controls">
+          <button :class="['chart-control-button', '1W' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1W')">1W</button>
+          <button :class="['chart-control-button', '1M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1M')">1M</button>
+          <button :class="['chart-control-button', '3M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('3M')">3M</button>
+          <button :class="['chart-control-button', '1Y' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1Y')">1Y</button>
+          <button :class="['chart-control-button', 'ALL' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('ALL')">ALL</button>
+          <button :class="['chart-control-button', 'chart-control-button-7d-pred', '7D_PRED' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('7D_PRED')">7D Predicted</button>
+        </div>
+        <div class="lineChart">
+          <canvas id="myChart"></canvas>
+          <div v-if="loading" class="overlay">
+            <div class="loader"></div>
+          </div>
+        </div>
+      </div>
+      <div id="table-div">
+        <table class="table table-dark">
+          <caption>Model's Performance for {{ this.$store.getters.getSelectedTickerData().info.company_name }} ({{ this.$store.getters.getSelectedTickerData().name }})</caption>
+          <thead>
+            <tr>
+              <th scope="col">Precision</th>
+              <th scope="col">Recall</th>
+              <th scope="col">F1-score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>2</td>
+              <td>3</td>
+            </tr>
+            <tr></tr>
+          </tbody>
+        </table>
       </div>
     </div>
     <!-- {{ this.$store.getters.getSelectedTickerData() }} -->
@@ -49,6 +70,7 @@
 <script>
 import Chart from 'chart.js';
 import moment from 'moment';
+import axios from 'axios';
 
 export default {
   name: 'Dashboard',
@@ -59,12 +81,51 @@ export default {
       allData: null,
       chart: null,
       activeTimeFrame: 'ALL', // Set a default active time frame if needed
+      cleanFields: {}
     }
   },
   mounted() {
     if (this.selectedStock) {
       this.fetchAndDisplayStockData(this.selectedStock);
     }
+
+    const uri = 'http://127.0.0.1:5000/model/performance';
+    axios.get(uri)
+    .then((res) => {
+      console.log(res);
+      this.tickers = res.data;
+      return res.data;
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+
+    // copied keys from metrics array in backend /!\
+    this.cleanFields = {
+      "marketCap": "Market Cap", 
+      "sector": "Sector", 
+      "industry": "Industry",
+      "dividendYield": "Dividend Yield", 
+      "trailingPE": "Trailing PE", 
+      "earningsQuarterlyGrowth": "Earnings Quarterly Growth",
+      "currentPrice": "Current Price", 
+      "regularMarketVolume": "Regular Market Volume", 
+      "beta": "Beta",
+      "fiftyTwoWeekLow": "Fifty-Two Week Low", 
+      "fiftyTwoWeekHigh": "Fifty-Two Week High", 
+      "currency": "Currency"
+    }
+
+    const uri2 = 'http://127.0.0.1:5000/model/AAPL/info';
+    axios.get(uri2)
+    .then((res) => {
+      console.log(res);
+      this.tickers = res.data;
+      return res.data;
+    })
+    .catch((error) => {
+      console.error(error);
+    });
   },
   computed: {
     selectedStock() {
@@ -278,6 +339,15 @@ export default {
 </script>
 
 <style scoped>
+caption{
+  font-size: 1.5rem;
+  caption-side: top;
+}
+table{
+  margin: 2rem auto 0;
+  min-width: 300px;
+}
+
 #cards h3{
   font-size: 2rem;
 }
