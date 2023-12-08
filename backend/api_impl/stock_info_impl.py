@@ -13,28 +13,9 @@ def fetch_single_stock_data(ticker):
     ]
     
     stock_info = {metric: yfinance_output.info.get(metric, "N/A") for metric in metrics}
-    stock_info = {get_display_name(key): value for key, value in stock_info.items()}
-    stock_info["Company Name"] = get_stock_name(ticker)
+    stock_info["companyName"] = get_stock_name(ticker)
     
     return stock_info
-
-def get_display_name(property_name):
-    display_names = {
-        "marketCap": "Market Cap", 
-        "sector": "Sector", 
-        "industry": "Industry",
-        "dividendYield": "Dividend Yield", 
-        "trailingPE": "Trailing P/E", 
-        "earningsQuarterlyGrowth": "Earnings Quarterly Growth",
-        "currentPrice": "Current Price", 
-        "regularMarketVolume": "Regular Market Volume", 
-        "beta": "Beta",
-        "fiftyTwoWeekLow": "Fifty-Two Week Low", 
-        "fiftyTwoWeekHigh": "Fifty-Two Week High", 
-        "currency": "Currency"
-    }
-    
-    return display_names[property_name]
 
 def get_stock_name(ticker):
     ticker_to_name = {
