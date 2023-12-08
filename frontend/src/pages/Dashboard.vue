@@ -1,10 +1,10 @@
 <template>
   <div>
-    <div style="display: grid; grid-template-columns: 1fr;">
+    <div style="display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, 1fr);">
       <div class="chart-container" v-if="selectedStock">
         <div id="basic-info" v-if="this.$store.getters.getSelectedTickerData().name">
           <h1>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }}</h1>
-          <h2>{{ this.$store.getters.getSelectedTickerData().info.company_name }}</h2>
+          <h2>{{ this.$store.getters.getSelectedTickerData().info.companyName }}</h2>
         </div>
         <div class="chart-controls">
           <button :class="['chart-control-button', '1W' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1W')">1W</button>
@@ -23,19 +23,21 @@
       </div>
       <div id="table-div">
         <table class="table table-dark">
-          <caption>Model's Performance for {{ this.$store.getters.getSelectedTickerData().info.company_name }} ({{ this.$store.getters.getSelectedTickerData().name }})</caption>
+          <caption>Model Performance (7D Predicted)</caption>
           <thead>
             <tr>
-              <th scope="col">Precision</th>
-              <th scope="col">Recall</th>
-              <th scope="col">F1-score</th>
+              <th scope="col">Date</th>
+              <th scope="col">Mean Square Error</th>
+              <th scope="col">Mean Absolute Error</th>
+              <th scope="col">Root Mean Square Error</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
+            <tr v-for="el in this.modelPerformanceToDays()">
+              <td>{{ el[0] }}</td>
+              <td>{{ formatDecimalNumber(el[1]['MAE'], 6) }}</td>
+              <td>{{ formatDecimalNumber(el[1]['MSE'], 6) }}</td>
+              <td>{{ formatDecimalNumber(el[1]['RMSE'], 6) }}</td>
             </tr>
             <tr></tr>
           </tbody>
@@ -44,13 +46,13 @@
     </div>
     <!-- {{ this.$store.getters.getSelectedTickerData() }} -->
     <!-- {{ Object.keys(this.$store.getters.getSelectedTickerData().info) }} -->
-    <div id="cards" style="min-width: auto; min-height: auto; display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));">
+    <div id="cards" style="min-width: auto; min-height: auto; display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">
       <!-- v-if="($store.getters.getSelectedTickerData().info)[key] != 'N/A'" -->
       <card style="width: auto;" v-if="checkDesiredKey(key)" v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
-        <h5>{{ key }}</h5>
-        <h3 v-if="typeof(($store.getters.getSelectedTickerData().info)[key]) === 'number' && formatDecimalNumber($store.getters.getSelectedTickerData().info[key]) != false">
+        <h5>{{ displayCardNames[key] }}</h5>
+        <h3 v-if="typeof(($store.getters.getSelectedTickerData().info)[key]) === 'number' && formatDecimalNumber($store.getters.getSelectedTickerData().info[key], 2) != false">
           <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->
-          {{ formatDecimalNumber($store.getters.getSelectedTickerData().info[key]) }}
+          {{ formatDecimalNumber($store.getters.getSelectedTickerData().info[key], 2) }}
         </h3>
         <h3 v-else>
           <!-- <i class="tim-icons icon-bell-55 text-primary "></i> -->
@@ -77,11 +79,11 @@ export default {
   data(){
     return{
       loading: false,
-      numberOfColumns: 3,
       allData: null,
       chart: null,
       activeTimeFrame: 'ALL', // Set a default active time frame if needed
-      cleanFields: {}
+      displayCardNames: {},
+      predictedModelPerformance: []
     }
   },
   mounted() {
@@ -89,19 +91,8 @@ export default {
       this.fetchAndDisplayStockData(this.selectedStock);
     }
 
-    const uri = 'http://127.0.0.1:5000/model/performance';
-    axios.get(uri)
-    .then((res) => {
-      console.log(res);
-      this.tickers = res.data;
-      return res.data;
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-
     // copied keys from metrics array in backend /!\
-    this.cleanFields = {
+    this.displayCardNames = {
       "marketCap": "Market Cap", 
       "sector": "Sector", 
       "industry": "Industry",
@@ -116,16 +107,9 @@ export default {
       "currency": "Currency"
     }
 
-    const uri2 = 'http://127.0.0.1:5000/model/AAPL/info';
-    axios.get(uri2)
-    .then((res) => {
-      console.log(res);
-      this.tickers = res.data;
-      return res.data;
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+    this.fillPerformanceArr();
+
+    console.log(this.modelPerformanceToDays());
   },
   computed: {
     selectedStock() {
@@ -147,20 +131,42 @@ export default {
     }
   },
   methods: {
+    async fillPerformanceArr(){
+      const uri = 'http://127.0.0.1:5000/model/performance';
+      await axios.get(uri)
+      .then((res) => {
+        console.log(res);
+        this.predictedModelPerformance = res.data;
+        return res.data;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    },
+    modelPerformanceToDays(){
+      let res = []
+      for(var el in this.predictedModelPerformance){
+        var date = new Date();
+        date.setDate(date.getDate() + Number(el) - 1);
+        var dateStr = date.toLocaleString('default', { month: 'short', day: 'numeric' });
+        res.push([dateStr, this.predictedModelPerformance[el]])
+      }
+      return res;
+    },
     selectStock(stockSymbol) {
       this.$store.dispatch('fetchStockData', stockSymbol);
     },
     checkDesiredKey(key){
-      return !['currentPrice', 'company_name'].includes(key)
+      return !['currentPrice', 'companyName'].includes(key)
     },
-    formatDecimalNumber(value){
+    formatDecimalNumber(value, precision){
       let splitDecimalValue = value.toString().split('.');
       // console.log(splitDecimalValue)
       if(splitDecimalValue.length == 1) return false;
 
       let lenOfNonDecimal = splitDecimalValue[0].toString().length
       // console.log(value.toPrecision(lenOfNonDecimal + 2))
-      return value.toPrecision(lenOfNonDecimal + 2);
+      return value.toPrecision(lenOfNonDecimal + precision);
     },
     async fetchAndDisplayStockData(stockSymbol) {
       this.loading = true;
@@ -340,19 +346,36 @@ export default {
 
 <style scoped>
 caption{
-  font-size: 1.5rem;
+  font-size: 2rem;
   caption-side: top;
 }
 table{
-  margin: 2rem auto 0;
-  min-width: 300px;
+  margin: 0 auto;
+  width: 100%;
+}
+th, td{
+  background-color: #27293d;
+  font-size: 1.75rem;
+}
+th{
+  font-size: 1rem !important;
 }
 
+.card-chart{
+  padding: 0 !important;
+}
+#cards{
+  margin-top: 2rem;
+}
 #cards h3{
   font-size: 2rem;
+  margin: 0;
+  margin-left: 1rem;
 }
 #cards h5{
   font-size: 1rem;
+  margin: 0;
+  margin-left: 1rem;
 }
 
 #basic-info{
