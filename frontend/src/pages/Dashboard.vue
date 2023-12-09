@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div style="display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, 1fr);">
+    <div id="top-wrapper">
       <div class="chart-container" v-if="selectedStock">
         <div id="basic-info" v-if="this.$store.getters.getSelectedTickerData().name">
           <h1>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }}</h1>
@@ -21,32 +21,7 @@
           </div>
         </div>
       </div>
-      <div id="table-div">
-        <table class="table table-dark">
-          <caption>Model Performance (7D Predicted)</caption>
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              <th scope="col">Mean Square Error</th>
-              <th scope="col">Mean Absolute Error</th>
-              <th scope="col">Root Mean Square Error</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="el in this.modelPerformanceToDays()">
-              <td>{{ el[0] }}</td>
-              <td>{{ formatDecimalNumber(el[1]['MAE'], 6) }}</td>
-              <td>{{ formatDecimalNumber(el[1]['MSE'], 6) }}</td>
-              <td>{{ formatDecimalNumber(el[1]['RMSE'], 6) }}</td>
-            </tr>
-            <tr></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <!-- {{ this.$store.getters.getSelectedTickerData() }} -->
-    <!-- {{ Object.keys(this.$store.getters.getSelectedTickerData().info) }} -->
-    <div id="cards" style="min-width: auto; min-height: auto; display: grid; grid-gap: 1em; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">
+      <div id="cards">
       <!-- v-if="($store.getters.getSelectedTickerData().info)[key] != 'N/A'" -->
       <card style="width: auto;" v-if="checkDesiredKey(key)" v-for="key in Object.keys(this.$store.getters.getSelectedTickerData().info)" type="chart">
         <h5>{{ displayCardNames[key] }}</h5>
@@ -59,7 +34,33 @@
           {{ ($store.getters.getSelectedTickerData().info)[key] }}
         </h3>
       </card>
+      </div>
     </div>
+    <h2>Model Performance (7D Predicted)</h2>
+    <div style="overflow-x: scroll;" id="table-div">
+        <table class="table table-dark">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Mean Square Error</th>
+              <th scope="col">Mean Absolute Error</th>
+              <th scope="col">Root Mean Square Error</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="el in this.modelPerformanceToDays()">
+              <td>{{ el[0] }}</td>
+              <td>{{ formatDecimalNumber(el[1]['MAE'], 4) }}</td>
+              <td>{{ formatDecimalNumber(el[1]['MSE'], 4) }}</td>
+              <td>{{ formatDecimalNumber(el[1]['RMSE'], 4) }}</td>
+            </tr>
+            <tr></tr>
+          </tbody>
+        </table>
+    </div>
+    <!-- {{ this.$store.getters.getSelectedTickerData() }} -->
+    <!-- {{ Object.keys(this.$store.getters.getSelectedTickerData().info) }} -->
+
     <!-- Remaining content of the Dashboard -->
     <div class="row">
       <!-- Other content rows and cards -->
@@ -276,70 +277,70 @@ export default {
         }
       }
     });
-  },
-  filterData(stockData, timeFrame) {
-    if (!stockData || !stockData.historical) {
-      console.error('Invalid or missing stock data');
-      return {};
-    }
-    const endDate = moment().unix();
-    let startDate;
+    },
+    filterData(stockData, timeFrame) {
+      if (!stockData || !stockData.historical) {
+        console.error('Invalid or missing stock data');
+        return {};
+      }
+      const endDate = moment().unix();
+      let startDate;
 
-    switch (timeFrame) {
-      case '1W':
-        startDate = moment().subtract(1, 'weeks').unix();
-        break;
-      case '1M':
-        startDate = moment().subtract(1, 'months').unix();
-        break;
-      case '3M':
-        startDate = moment().subtract(3, 'months').unix();
-        break;
-      case '1Y':
-        startDate = moment().subtract(1, 'years').unix();
-        break;
-        case '7D_PRED':
-        // Ensure that the filter captures the entire range of the last 7 days
-        startDate = moment().subtract(7, 'days').unix();
-        return {
-          historical: {},
-          predicted: Object.fromEntries(
-            Object.entries(stockData.predicted).filter(
-              ([timestamp]) => timestamp >= startDate
+      switch (timeFrame) {
+        case '1W':
+          startDate = moment().subtract(1, 'weeks').unix();
+          break;
+        case '1M':
+          startDate = moment().subtract(1, 'months').unix();
+          break;
+        case '3M':
+          startDate = moment().subtract(3, 'months').unix();
+          break;
+        case '1Y':
+          startDate = moment().subtract(1, 'years').unix();
+          break;
+          case '7D_PRED':
+          // Ensure that the filter captures the entire range of the last 7 days
+          startDate = moment().subtract(7, 'days').unix();
+          return {
+            historical: {},
+            predicted: Object.fromEntries(
+              Object.entries(stockData.predicted).filter(
+                ([timestamp]) => timestamp >= startDate
+              )
             )
-          )
-        };
-        case 'ALL':
-        // Combine historical and predicted data, ensuring they align correctly
-        return {
-          historical: stockData.historical,
-          predicted: Object.fromEntries(
-            Object.entries(stockData.predicted).filter(
-              ([timestamp]) => timestamp >= Object.keys(stockData.historical).slice(-1)[0]
+          };
+          case 'ALL':
+          // Combine historical and predicted data, ensuring they align correctly
+          return {
+            historical: stockData.historical,
+            predicted: Object.fromEntries(
+              Object.entries(stockData.predicted).filter(
+                ([timestamp]) => timestamp >= Object.keys(stockData.historical).slice(-1)[0]
+              )
             )
-          )
-        };
-      default:
-        startDate = moment().subtract(1, 'years').unix();
-    }
+          };
+        default:
+          startDate = moment().subtract(1, 'years').unix();
+      }
 
-    // Filtering logic for historical data for other cases
-    return {
-      historical: Object.fromEntries(
-        Object.entries(stockData.historical).filter(
-          ([timestamp]) => timestamp >= startDate && timestamp <= endDate
-        )
-      ),
-      predicted: stockData.predicted
-    };
-  },
-  updateTimeFrame(timeFrame) {
-    this.activeTimeFrame = timeFrame; // Set the active time frame
-    this.createChart(this.allData, timeFrame);
-  },
-  async getTicker() {
-    this.$store.getters.getSelectedTickerData();
-  },
+      // Filtering logic for historical data for other cases
+      return {
+        historical: Object.fromEntries(
+          Object.entries(stockData.historical).filter(
+            ([timestamp]) => timestamp >= startDate && timestamp <= endDate
+          )
+        ),
+        predicted: stockData.predicted
+      };
+    },
+    updateTimeFrame(timeFrame) {
+      this.activeTimeFrame = timeFrame; // Set the active time frame
+      this.createChart(this.allData, timeFrame);
+    },
+    async getTicker() {
+      this.$store.getters.getSelectedTickerData();
+    },
 }, 
 };
 </script>
@@ -361,11 +362,25 @@ th{
   font-size: 1rem !important;
 }
 
+.chart-container, #cards{
+  width: 50%;
+}
+
 .card-chart{
   padding: 0 !important;
 }
+
+#top-wrapper{
+  display: flex;
+  flex-direction: row;
+}
 #cards{
   margin-top: 2rem;
+  min-width: auto; 
+  min-height: auto; 
+  display: grid; 
+  grid-gap: 1em; 
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 #cards h3{
   font-size: 2rem;
@@ -376,6 +391,24 @@ th{
   font-size: 1rem;
   margin: 0;
   margin-left: 1rem;
+}
+.card{
+  margin: 0 !important;
+}
+@media screen and (max-width: 1050px){
+  .chart-container, #cards{
+    width: 100% !important;
+    height: auto;
+  }
+
+  #cards{
+    grid-template-columns: repeat(1fr);
+    width: 100%;
+  }
+
+  #top-wrapper{
+    flex-direction: column;
+  }
 }
 
 #basic-info{
