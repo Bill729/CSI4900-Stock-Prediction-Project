@@ -7,12 +7,25 @@
           <h2>{{ this.$store.getters.getSelectedTickerData().info.companyName }}</h2>
         </div>
         <div class="chart-controls">
-          <button :class="['chart-control-button', '1W' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1W')">1W</button>
-          <button :class="['chart-control-button', '1M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1M')">1M</button>
-          <button :class="['chart-control-button', '3M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('3M')">3M</button>
-          <button :class="['chart-control-button', '1Y' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1Y')">1Y</button>
-          <button :class="['chart-control-button', 'ALL' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('ALL')">ALL</button>
-          <button :class="['chart-control-button', 'chart-control-button-7d-pred', '7D_PRED' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('7D_PRED')">7D Predicted</button>
+          <button :class="['chart-control-button', '1W' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1W')">1W
+            <span v-if="performanceData['1w']" :class="{'positive': performanceData['1w'] >= 0, 'negative': performanceData['1w'] < 0}">{{ performanceData['1w'] | formatPercentage }}</span>
+          </button>
+          <button :class="['chart-control-button', '1M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1M')">1M
+            <span v-if="performanceData['1m']" :class="{'positive': performanceData['1m'] >= 0, 'negative': performanceData['1m'] < 0}">{{ performanceData['1m'] | formatPercentage }}</span>
+          </button>
+          <button :class="['chart-control-button', '3M' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('3M')">3M
+            <span v-if="performanceData['3m']" :class="{'positive': performanceData['3m'] >= 0, 'negative': performanceData['3m'] < 0}">{{ performanceData['3m'] | formatPercentage }}</span>
+          </button>
+          <button :class="['chart-control-button', '1Y' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1Y')">1Y
+            <span v-if="performanceData['1y']" :class="{'positive': performanceData['1y'] >= 0, 'negative': performanceData['1y'] < 0}">{{ performanceData['1y'] | formatPercentage }}</span>
+          </button>
+          <button :class="['chart-control-button', 'ALL' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('ALL')">ALL
+            <span v-if="performanceData['all']" :class="{'positive': performanceData['all'] >= 0, 'negative': performanceData['all'] < 0}">{{ performanceData['all'] | formatPercentage }}</span>
+          </button>
+          <button :class="['chart-control-button', 'chart-control-button-7d-pred', '7D_PRED' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('7D_PRED')">7D Predicted
+            <span v-if="performanceData['1w_predicted']" :class="{'positive': performanceData['1w_predicted'] >= 0, 'negative': performanceData['1w_predicted'] < 0}">
+              {{ performanceData['1w_predicted'] | formatPercentage }}</span>
+          </button>
         </div>
         <div class="lineChart">
           <canvas id="myChart"></canvas>
@@ -84,7 +97,8 @@ export default {
       chart: null,
       activeTimeFrame: 'ALL', // Set a default active time frame if needed
       displayCardNames: {},
-      predictedModelPerformance: []
+      predictedModelPerformance: [],
+      performanceData: {}
     }
   },
   mounted() {
@@ -129,6 +143,11 @@ export default {
       if (newData !== oldData) {
         this.createChart(newData, 'ALL');
       }
+    }
+  },
+  filters: {
+    formatPercentage(value) {
+      return `${value.toFixed(2)}%`;
     }
   },
   methods: {
@@ -182,6 +201,7 @@ export default {
         this.allData = this.$store.getters.getStockData(stockSymbol);
         // Make sure to handle the case when the API call fails and allData remains undefined
         if (this.allData) {
+          //this.performanceData = this.allData.performance;
           this.createChart(this.allData, this.activeTimeFrame);
         }
       }
@@ -223,6 +243,7 @@ export default {
     //   spacedPredictedLabels = predictedLabels;
     // }
     // Create the chart with the separate datasets
+    console.log("Performance", stockData.performance);
     this.chart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -274,9 +295,11 @@ export default {
             mode: 'index',
             intersect: false
           }
-        }
+        },
+        maintainAspectRatio: false,
       }
     });
+    this.performanceData = this.calculatePerformanceData(stockData.performance, timeFrame);
     },
     filterData(stockData, timeFrame) {
       if (!stockData || !stockData.historical) {
@@ -318,7 +341,8 @@ export default {
               Object.entries(stockData.predicted).filter(
                 ([timestamp]) => timestamp >= Object.keys(stockData.historical).slice(-1)[0]
               )
-            )
+            ),
+            performance: stockData.performance
           };
         default:
           startDate = moment().subtract(1, 'years').unix();
@@ -334,8 +358,26 @@ export default {
         predicted: stockData.predicted
       };
     },
+    calculatePerformanceData(performance, timeFrame) {
+      // Extract the performance data based on the time frame
+      // Assuming the performance object contains keys like '1w', '1m', etc.
+      const performanceData = {};
+      const timeFrameMapping = {
+        '1W': '1w',
+        '1M': '1m',
+        '3M': '3m',
+        '1Y': '1y',
+        'ALL': 'all',
+        '7D_PRED': '1w_predicted' // Assuming you have weekly predicted performance
+      };
+      const key = timeFrameMapping[timeFrame];
+      performanceData[key] = performance[key];
+
+      return performanceData;
+    },
     updateTimeFrame(timeFrame) {
       this.activeTimeFrame = timeFrame; // Set the active time frame
+      this.performanceData = this.calculatePerformanceData(timeFrame);
       this.createChart(this.allData, timeFrame);
     },
     async getTicker() {
@@ -423,15 +465,15 @@ th{
 }
 
 .overlay {
-  position: absolute; /* Positioned absolutely to the parent relative container */
+  position: absolute; /* Position overlay in relation to lineChart */
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%; /* Cover the full width */
+  height: 100%; /* Cover the full height */
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10; /* Ensure it's above other content */
+  justify-content: center; /* Center the loader horizontally */
+  align-items: center; /* Center the loader vertically */
+  z-index: 10; /* Ensure it's above the chart */
 }
 
 .loader {
@@ -449,25 +491,39 @@ th{
 }
 
 .chart-container {
-  text-align: left;
-  padding-left: 20px;
-  margin: 2rem 0;
-  margin-left: 20px;
+  width: 100%; 
+  margin: 2rem auto; 
+  padding: 0 20px; 
 }
 
 .lineChart {
-  width: 100%;
-  max-width: 600px;
-  height: 300px;
-  margin-left: 0;
-  margin-right: auto;
-  position: relative; 
+  width: 100%; 
+  height: auto; 
+  aspect-ratio: 2 / 1; 
+  position: relative;
+}
+
+@media screen and (min-width: 1050px){
+  .chart-container, #cards {
+    width: 50%; 
+  }
+}
+
+@media screen and (max-width: 1050px){
+  #top-wrapper{
+    flex-direction: column;
+  }
+
+  #cards{
+    grid-template-columns: 1fr; 
+    margin-top: 1rem; 
+  }
 }
 
 .chart-controls {
   text-align: left; 
   margin-bottom: 10px; 
-  margin-left: 140px;
+  margin-left: 410px;
 }
 
 .chart-controls button {
@@ -481,12 +537,26 @@ th{
 }
 
 .chart-control-button:hover,
-.chart-control-button.active { /* Add .active here */
-  background-color: #001eb3; /* This color will show on hover and when the button is active */
+.chart-control-button.active {
+  background-color: #001eb3; 
 }
 
-/* Specific style for the '7D Pred' button when it is active */
 .chart-control-button-7d-pred.active {
-  background-color: #ff4500; /* Same color as the border color for the '7D Pred' button */
+  background-color: #001eb3; 
+}
+
+.performance-data {
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.positive {
+  font-weight: bold;
+  color: rgb(0, 255, 0);
+}
+
+.negative {
+  font-weight: bold;
+  color: rgb(220, 1, 1);
 }
 </style>
