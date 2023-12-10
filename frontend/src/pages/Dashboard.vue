@@ -470,7 +470,7 @@ th{
 .card{
   margin: 0 !important;
 }
-@media screen and (max-width: 1050px){
+@media screen and (max-width: 1060px){
   .chart-container, #cards{
     width: 100% !important;
     height: auto;
