@@ -1,11 +1,13 @@
 <template>
   <div>
     <div id="top-wrapper">
+      
       <div class="chart-container" v-if="selectedStock">
         <div id="basic-info" v-if="this.$store.getters.getSelectedTickerData().name">
           <h1>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }}</h1>
           <h2>{{ this.$store.getters.getSelectedTickerData().info.companyName }}</h2>
         </div>
+        <div class="line-chart-container">
         <div class="chart-controls">
           <button :class="['chart-control-button', '1W' === activeTimeFrame ? 'active' : '']" @click="updateTimeFrame('1W')">1W
             <span v-if="performanceData['1w']" :class="{'positive': performanceData['1w'] >= 0, 'negative': performanceData['1w'] < 0}">{{ performanceData['1w'] | formatPercentage }}</span>
@@ -33,6 +35,7 @@
             <div class="loader"></div>
           </div>
         </div>
+      </div>
       </div>
       <div id="cards">
       <!-- v-if="($store.getters.getSelectedTickerData().info)[key] != 'N/A'" -->
@@ -493,8 +496,9 @@ th{
 .chart-container {
   width: 100%; 
   margin: 2rem auto; 
-  padding: 0 20px; 
+  padding: 0; 
 }
+
 
 .lineChart {
   width: 100%; 
@@ -521,9 +525,11 @@ th{
 }
 
 .chart-controls {
-  text-align: left; 
+  display: flex; 
+  justify-content: center; 
   margin-bottom: 10px; 
-  margin-left: 410px;
+  width: 100%; 
+  flex-wrap: wrap; 
 }
 
 .chart-controls button {
@@ -558,5 +564,11 @@ th{
 .negative {
   font-weight: bold;
   color: rgb(220, 1, 1);
+}
+.line-chart-container {
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  width: 100%; 
 }
 </style>
