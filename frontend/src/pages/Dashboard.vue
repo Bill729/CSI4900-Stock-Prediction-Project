@@ -505,6 +505,8 @@ th{
   height: auto; 
   aspect-ratio: 2 / 1; 
   position: relative;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 @media screen and (min-width: 1050px){
@@ -530,6 +532,8 @@ th{
   margin-bottom: 10px; 
   width: 100%; 
   flex-wrap: wrap; 
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 .chart-controls button {
