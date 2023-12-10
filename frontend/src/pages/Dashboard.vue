@@ -1,7 +1,6 @@
 <template>
   <div>
     <div id="top-wrapper">
-      
       <div class="chart-container" v-if="selectedStock">
         <div id="basic-info" v-if="this.$store.getters.getSelectedTickerData().name">
           <h1>${{ this.$store.getters.getSelectedTickerData().info.currentPrice }}</h1>
@@ -52,8 +51,9 @@
       </card>
       </div>
     </div>
-    <h2>Model Performance (7D Predicted)</h2>
-    <div style="overflow-x: scroll;" id="table-div">
+    <h2 id="table-title">Model Performance (7D Predicted)</h2>
+    <div id="table-div-wrapper">
+      <div id="table-div">
         <table class="table table-dark">
           <thead>
             <tr>
@@ -66,14 +66,16 @@
           <tbody>
             <tr v-for="el in this.modelPerformanceToDays()">
               <td>{{ el[0] }}</td>
-              <td>{{ formatDecimalNumber(el[1]['MAE'], 4) }}</td>
-              <td>{{ formatDecimalNumber(el[1]['MSE'], 4) }}</td>
-              <td>{{ formatDecimalNumber(el[1]['RMSE'], 4) }}</td>
+              <td>{{ formatDecimalNumber(el[1]['MAE'], 2) }}</td>
+              <td>{{ formatDecimalNumber(el[1]['MSE'], 2) }}</td>
+              <td>{{ formatDecimalNumber(el[1]['RMSE'], 2) }}</td>
             </tr>
             <tr></tr>
           </tbody>
         </table>
+      </div>
     </div>
+
     <!-- {{ this.$store.getters.getSelectedTickerData() }} -->
     <!-- {{ Object.keys(this.$store.getters.getSelectedTickerData().info) }} -->
 
@@ -398,6 +400,33 @@ caption{
 table{
   margin: 0 auto;
   width: 100%;
+  background-color: transparent;
+}
+#table-div-wrapper{
+  padding: 0 2rem 2rem;
+}
+table thead th:first-child{
+  border-top-left-radius: 0.5rem;
+}
+table thead th:last-child{
+  border-top-right-radius: 0.5rem;
+}
+table tbody tr:nth-child(7) td:first-child{
+  border-bottom-left-radius: 0.5rem;
+  border: 0;
+}
+table tbody tr:nth-child(7) td:last-child{
+  border-bottom-right-radius: 0.5rem;
+  border: 0;
+}
+table thead th{
+  padding: 1rem;
+}
+table tbody tr td{
+  padding: 0.5rem 1rem;
+}
+#table-title{
+  margin-left: 2rem;
 }
 th, td{
   background-color: #27293d;
@@ -426,14 +455,15 @@ th{
   display: grid; 
   grid-gap: 1em; 
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  padding: 2rem;
 }
 #cards h3{
-  font-size: 2rem;
+  font-size: 2.5rem;
   margin: 0;
   margin-left: 1rem;
 }
 #cards h5{
-  font-size: 1rem;
+  font-size: 1.25rem;
   margin: 0;
   margin-left: 1rem;
 }
@@ -457,6 +487,7 @@ th{
 }
 
 #basic-info{
+  margin-left: 3rem;
   h1{
     font-size: 5rem;
   }
@@ -466,7 +497,6 @@ th{
     margin: 0.5rem 0;
   }
 }
-
 .overlay {
   position: absolute; /* Position overlay in relation to lineChart */
   top: 0;
@@ -523,6 +553,10 @@ th{
   #cards{
     grid-template-columns: 1fr; 
     margin-top: 1rem; 
+  }
+
+  #table-div{
+    overflow-x: scroll;
   }
 }
 
