@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex; flex-direction: column;">
+  <div id="wrapper">
     <div class="news-item" v-for="newsItem in news" :key="newsItem.url">
       <div class="img-section">
         <a :href="newsItem.url">
@@ -13,7 +13,9 @@
         <h5 class="card-category">Published on {{ newsItem.publishedAt.replace('T', ' ').replace('Z', ' ') }}</h5>
         <h5 class="card-category">Published by {{ newsItem.author }}</h5>
         <h6 class="card-title">From {{ newsItem.source }}</h6>
-        <button type="button" class="btn btn-primary"><a class="text-white font-weight-bold" :href="newsItem.url" target="_blank">Read</a></button>
+        <button type="button" class="btn btn-primary">
+          <a class="text-white font-weight-bold" :href="newsItem.url" target="_blank">Read</a>
+        </button>
       </div>
     </div>
   </div>
@@ -70,6 +72,7 @@ button{
 }
 .img-section{
   width: 100%;
+  height: 375px;
 }
 img{
   width: 100%;
@@ -77,9 +80,33 @@ img{
   object-fit: cover;
   border-radius: 0.75rem;
 }
+#wrapper{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 2rem;
+  grid-gap: 2rem;
+  align-items: stretch;
+  padding-bottom: 4rem;
+}
+@media screen and (max-width: 1600px  ){
+  #wrapper{
+    display: flex;
+    flex-direction: column;
+  }
+  .news-item{
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1200px;
+  }
+}
 .news-item{
-  margin: 5rem auto;
   max-width: 850px;
   margin-top: 0;
+  position: relative;
+  padding-bottom: 4rem;
+}
+.news-item .btn{
+  position: absolute;
+  bottom: 0;
 }
 </style>
